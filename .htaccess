@@ -1,0 +1,69 @@
+# <IfModule mod_headers.c>
+#     # Dynamically allow any origin passed in the request
+#     Header always set Access-Control-Allow-Origin "https://my.geotab.com"
+
+#     # Allow methods and headers
+#     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+#     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, Origin, x-xsrf-token,x-api-key"
+#     Header always set Access-Control-Allow-Credentials "true"
+# </IfModule>
+
+
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    # PHP Settings
+    php_value upload_max_filesize 1000M
+    php_value post_max_size 1000M
+    php_value max_file_uploads 500
+    php_value max_execution_time 3600
+    php_value max_input_time 3600
+    php_value memory_limit 2560M
+
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.jpeg|\.gif|robots\.txt|\.ico|\.woff|\.woff2|.ttf|\.svg)$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(css|assets|landing|storage|installer|js)/(.*)$ public/$1/$2 [L,NC]
+    
+    
+    
+    
+#     # Enable CORS for localhost:3000
+Header always set Access-Control-Allow-Origin "https://api-monitoring-and-purchasing-platform-df9e.onrender.com"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, Origin,x-api-key"
+Header always set Access-Control-Allow-Credentials "true"
+
+# Handle preflight OPTIONS requests
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Alternative: Allow multiple localhost ports (uncomment if needed)
+# Header always set Access-Control-Allow-Origin "http://localhost:3000, http://localhost:3001, http://localhost:5173"
+
+# Alternative: Allow all origins (NOT recommended for production)
+# Header always set Access-Control-Allow-Origin "*"
+</IfModule>
+

@@ -1,0 +1,243 @@
+[06-Nov-2025 11:33:35 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php on line 34
+[06-Nov-2025 11:33:35 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/../vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php:34
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once()
+#1 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php on line 34
+[06-Nov-2025 11:35:49 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:35:49 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:27 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:29 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:29 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:31 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:31 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:40 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:40 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:41 UTC] PHP Warning:  require(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:41 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../symfony/polyfill-mbstring/bootstrap.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php:41
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php(45): {closure}()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/autoload.php(25): ComposerAutoloaderInit8342c07d9161854d53f44a94c2ace5e8::getLoader()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(34): require('/home/cz0452kpw...')
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#4 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/autoload_real.php on line 41
+[06-Nov-2025 11:37:52 UTC] PHP Warning:  include(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../vlucas/phpdotenv/src/Repository/RepositoryBuilder.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[06-Nov-2025 11:37:52 UTC] PHP Warning:  include(): Failed opening '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../vlucas/phpdotenv/src/Repository/RepositoryBuilder.php' for inclusion (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[06-Nov-2025 11:37:52 UTC] PHP Fatal error:  Uncaught ReflectionException: Class "config" does not exist in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:912
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(912): ReflectionClass->__construct()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(1454): Illuminate\Foundation\Application->make()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(544): Illuminate\Container\Container->offsetGet()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(595): Illuminate\Log\LogManager->getDefaultDriver()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(124): Illuminate\Log\LogManager->parseDriver()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(665): Illuminate\Log\LogManager->driver()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(317): Illuminate\Log\LogManager->error()
+#11 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(278): Illuminate\Foundation\Exceptions\Handler->reportThrowable()
+#12 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(497): Illuminate\Foundation\Exceptions\Handler->report()
+#13 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(146): Illuminate\Foundation\Http\Kernel->reportException()
+#14 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(51): Illuminate\Foundation\Http\Kernel->handle()
+#15 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#16 {main}
+
+Next Illuminate\Contracts\Container\BindingResolutionException: Target class [config] does not exist. in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:914
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(1454): Illuminate\Foundation\Application->make()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(544): Illuminate\Container\Container->offsetGet()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(595): Illuminate\Log\LogManager->getDefaultDriver()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(124): Illuminate\Log\LogManager->parseDriver()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(665): Illuminate\Log\LogManager->driver()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(317): Illuminate\Log\LogManager->error()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(278): Illuminate\Foundation\Exceptions\Handler->reportThrowable()
+#11 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(497): Illuminate\Foundation\Exceptions\Handler->report()
+#12 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(146): Illuminate\Foundation\Http\Kernel->reportException()
+#13 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(51): Illuminate\Foundation\Http\Kernel->handle()
+#14 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#15 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php on line 914
+[06-Nov-2025 11:37:54 UTC] PHP Warning:  include(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../vlucas/phpdotenv/src/Repository/RepositoryBuilder.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[06-Nov-2025 11:37:54 UTC] PHP Warning:  include(): Failed opening '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../vlucas/phpdotenv/src/Repository/RepositoryBuilder.php' for inclusion (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[06-Nov-2025 11:37:54 UTC] PHP Fatal error:  Uncaught ReflectionException: Class "config" does not exist in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:912
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(912): ReflectionClass->__construct()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(1454): Illuminate\Foundation\Application->make()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(544): Illuminate\Container\Container->offsetGet()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(595): Illuminate\Log\LogManager->getDefaultDriver()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(124): Illuminate\Log\LogManager->parseDriver()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(665): Illuminate\Log\LogManager->driver()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(317): Illuminate\Log\LogManager->error()
+#11 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(278): Illuminate\Foundation\Exceptions\Handler->reportThrowable()
+#12 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(497): Illuminate\Foundation\Exceptions\Handler->report()
+#13 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(146): Illuminate\Foundation\Http\Kernel->reportException()
+#14 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(51): Illuminate\Foundation\Http\Kernel->handle()
+#15 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#16 {main}
+
+Next Illuminate\Contracts\Container\BindingResolutionException: Target class [config] does not exist. in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:914
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(1454): Illuminate\Foundation\Application->make()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(544): Illuminate\Container\Container->offsetGet()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(595): Illuminate\Log\LogManager->getDefaultDriver()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(124): Illuminate\Log\LogManager->parseDriver()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Log/LogManager.php(665): Illuminate\Log\LogManager->driver()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(317): Illuminate\Log\LogManager->error()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php(278): Illuminate\Foundation\Exceptions\Handler->reportThrowable()
+#11 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(497): Illuminate\Foundation\Exceptions\Handler->report()
+#12 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(146): Illuminate\Foundation\Http\Kernel->reportException()
+#13 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(51): Illuminate\Foundation\Http\Kernel->handle()
+#14 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#15 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php on line 914
+[09-Nov-2025 07:25:27 UTC] PHP Warning:  require_once(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:28 UTC] PHP Warning:  require_once(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:28 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:36 UTC] PHP Warning:  require_once(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:36 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:56 UTC] PHP Warning:  require_once(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:25:56 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php on line 23
+[09-Nov-2025 07:26:04 UTC] PHP Warning:  include(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../../app/Http/Kernel.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[09-Nov-2025 07:26:04 UTC] PHP Warning:  include(): Failed opening '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../../app/Http/Kernel.php' for inclusion (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[09-Nov-2025 07:26:04 UTC] PHP Fatal error:  Uncaught ReflectionException: Class "App\Http\Kernel" does not exist in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:912
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(912): ReflectionClass->__construct()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(296): Illuminate\Foundation\Application->resolve()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(908): Illuminate\Container\Container->Illuminate\Container\{closure}()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(49): Illuminate\Foundation\Application->make()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#11 {main}
+
+Next Illuminate\Contracts\Container\BindingResolutionException: Target class [App\Http\Kernel] does not exist. in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:914
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(296): Illuminate\Foundation\Application->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(908): Illuminate\Container\Container->Illuminate\Container\{closure}()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(49): Illuminate\Foundation\Application->make()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#10 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php on line 914
+[09-Nov-2025 07:26:06 UTC] PHP Warning:  include(/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../../app/Http/Kernel.php): Failed to open stream: No such file or directory in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[09-Nov-2025 07:26:06 UTC] PHP Warning:  include(): Failed opening '/home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/../../app/Http/Kernel.php' for inclusion (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/composer/ClassLoader.php on line 576
+[09-Nov-2025 07:26:06 UTC] PHP Fatal error:  Uncaught ReflectionException: Class "App\Http\Kernel" does not exist in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:912
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(912): ReflectionClass->__construct()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(296): Illuminate\Foundation\Application->resolve()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(908): Illuminate\Container\Container->Illuminate\Container\{closure}()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(49): Illuminate\Foundation\Application->make()
+#10 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#11 {main}
+
+Next Illuminate\Contracts\Container\BindingResolutionException: Target class [App\Http\Kernel] does not exist. in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php:914
+Stack trace:
+#0 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#1 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#2 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(296): Illuminate\Foundation\Application->resolve()
+#3 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(908): Illuminate\Container\Container->Illuminate\Container\{closure}()
+#4 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(795): Illuminate\Container\Container->build()
+#5 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(955): Illuminate\Container\Container->resolve()
+#6 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php(731): Illuminate\Foundation\Application->resolve()
+#7 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(940): Illuminate\Container\Container->make()
+#8 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/public/index.php(49): Illuminate\Foundation\Application->make()
+#9 /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/index.php(23): require_once('/home/cz0452kpw...')
+#10 {main}
+  thrown in /home/cz0452kpwu25/public_html/erp.c4u-online.co.uk/vendor/laravel/framework/src/Illuminate/Container/Container.php on line 914
+[16-Mar-2026 12:55:51 UTC] PHP Deprecated:  Optional parameter $year declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[16-Mar-2026 12:55:51 UTC] PHP Deprecated:  Optional parameter $fromDate declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[16-Mar-2026 12:55:51 UTC] PHP Deprecated:  Optional parameter $toDate declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[16-Mar-2026 12:55:51 UTC] PHP Deprecated:  Optional parameter $depotIds declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[17-Mar-2026 09:53:26 UTC] PHP Deprecated:  Optional parameter $year declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[17-Mar-2026 09:53:26 UTC] PHP Deprecated:  Optional parameter $fromDate declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[17-Mar-2026 09:53:26 UTC] PHP Deprecated:  Optional parameter $toDate declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[17-Mar-2026 09:53:26 UTC] PHP Deprecated:  Optional parameter $depotIds declared before required parameter $selectedGroupId is implicitly treated as a required parameter in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Exports/CalendarEventsExport.php on line 27
+[19-Mar-2026 09:01:22 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:01:44 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:02:08 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:02:24 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:04:22 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:04:41 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingControllers, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/app/Http/Controllers/TrainingController.php on line 11
+[19-Mar-2026 09:06:48 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:07:54 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:22:50 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:24:24 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
+[19-Mar-2026 09:25:30 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\TrainingController, because the name is already in use in /home/cz0452kpwu25/public_html/deverp.c4u-online.co.uk/storage/framework/views/fbb5b2b492fdffa7783c725e6034c70f.php on line 11
