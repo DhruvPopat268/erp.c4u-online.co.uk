@@ -124,7 +124,22 @@ $(document).ready(function () {
     // Initially hide PMI Intervals
     $('#pmi_interval_wrapper').hide();
 
-    // When the Date of Inspection is selected
+    function calculatePMIDue() {
+        const inspectionDate = $('#date_of_inspection').val();
+        const interval = $('#PMI_intervals').val();
+        if (inspectionDate && interval) {
+            const dueDate = new Date(inspectionDate);
+            dueDate.setDate(dueDate.getDate() + (7 * parseInt(interval)));
+            const day = String(dueDate.getDate()).padStart(2, '0');
+            const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+            const year = dueDate.getFullYear();
+            $('#PMI_due').val(`${month}-${day}-${year}`);
+        } else {
+            $('#PMI_due').val('');
+        }
+    }
+
+    // When the Date of Inspection is selected or changed
     $('#date_of_inspection').on('change', function () {
         const dateSelected = $(this).val();
         if (dateSelected) {
@@ -134,22 +149,12 @@ $(document).ready(function () {
             $('#PMI_intervals').val('');
             $('#PMI_due').val('');
         }
+        calculatePMIDue();
     });
 
-    // If PMI interval is selected after inspection date
-    $('#PMI_intervals').change(function () {
-        const interval = $(this).val();
-        const inspectionDate = $('#date_of_inspection').val();
-        if (interval && inspectionDate) {
-            const dueDate = new Date(inspectionDate);
-            dueDate.setDate(dueDate.getDate() + (7 * parseInt(interval)));
-
-            const day = String(dueDate.getDate()).padStart(2, '0');
-            const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-            const year = dueDate.getFullYear();
-
-            $('#PMI_due').val(`${day}-${month}-${year}`);
-        }
+    // If PMI interval is selected or changed
+    $('#PMI_intervals').on('change', function () {
+        calculatePMIDue();
     });
 });
     if ($(".multi-select").length > 0) {
@@ -300,21 +305,7 @@ $(document).ready(function () {
     }
 
 
- $('#PMI_intervals').change(function() {
-        var interval = $(this).val();
-        var inspectionDate = $('#date_of_inspection').val(); // Get the date_of_inspection value
-        if (interval && inspectionDate) {
-            var dueDate = new Date(inspectionDate); // Use the selected date_of_inspection
-            dueDate.setDate(dueDate.getDate() + (7 * interval));
 
-            var day = String(dueDate.getDate()).padStart(2, '0');
-            var month = String(dueDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            var year = dueDate.getFullYear();
-
-            var formattedDate = day + '-' + month + '-' + year;
-            $('#PMI_due').val(formattedDate);
-        }
-    });
 
     $(document).ready(function() {
         $('.device-dropdown').change(function() {

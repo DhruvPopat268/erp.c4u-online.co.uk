@@ -469,7 +469,7 @@ if (! is_array($vehicleGroupIds)) {
 
                         // Find the next FleetPlannerReminder with the same fleet_planner_id
                         $nextReminder = FleetPlannerReminder::where('fleet_planner_id', $reminder->fleet_planner_id)
-                            ->where('id', '>', $reminder->id) // Ensure it's the next reminder
+                            ->where('id', '>', $reminder->id)
                             ->orderBy('id', 'asc')
                             ->first();
 
@@ -477,7 +477,6 @@ if (! is_array($vehicleGroupIds)) {
 
                             $formattedNextReminderDate = \Carbon\Carbon::parse($nextReminder->next_reminder_date)->format('d-m-Y');
 
-                            // Update the appropriate field with the next reminder's next_reminder_date
                             if ($fleet->planner_type === 'Tacho Calibration') {
                                 $vehicle->tacho_calibration = $nextReminder->next_reminder_date;
                             } elseif ($fleet->planner_type === 'DVS/PSS Permit Expiry') {
@@ -488,19 +487,60 @@ if (! is_array($vehicleGroupIds)) {
                                 $vehicle->PMI_due = $formattedNextReminderDate;
                             } elseif ($fleet->planner_type === 'Brake Test Due') {
                                 $vehicle->brake_test_due = $nextReminder->next_reminder_date;
-
                             } elseif ($fleet->planner_type === 'Fridge Service') {
                                 $vehicle->fridge_service = $nextReminder->next_reminder_date;
-
                             } elseif ($fleet->planner_type === 'Fridge Calibration') {
                                 $vehicle->fridge_calibration = $nextReminder->next_reminder_date;
-
                             } elseif ($fleet->planner_type === 'Tail lift') {
                                 $vehicle->tail_lift = $nextReminder->next_reminder_date;
                             } elseif ($fleet->planner_type === 'Loler') {
                                 $vehicle->loler = $nextReminder->next_reminder_date;
                             }
                             $vehicle->save();
+
+                        } else {
+
+                            // No next pending reminder — auto create new year reminders
+                            $newFleet = \App\Models\Fleet::create([
+                                'company_id'   => $fleet->company_id,
+                                'vehicle_id'   => $fleet->vehicle_id,
+                                'planner_type' => $fleet->planner_type,
+                                'start_date'   => \Carbon\Carbon::parse($reminder->next_reminder_date)->addWeeks($fleet->every)->format('Y-m-d'),
+                                'end_date'     => \Carbon\Carbon::parse($reminder->next_reminder_date)->addWeeks($fleet->every)->addYear()->format('Y-m-d'),
+                                'every'        => $fleet->every,
+                                'interval'     => $fleet->interval,
+                                'created_by'   => \Auth::user()->id,
+                            ]);
+
+                            $this->generateReminders($newFleet);
+
+                            // get first new pending reminder
+                            $firstNewReminder = FleetPlannerReminder::where('fleet_planner_id', $newFleet->id)
+                                ->orderBy('next_reminder_date', 'asc')
+                                ->first();
+
+                            if ($firstNewReminder) {
+                                if ($fleet->planner_type === 'Tacho Calibration') {
+                                    $vehicle->tacho_calibration = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'DVS/PSS Permit Expiry') {
+                                    $vehicle->dvs_pss_permit_expiry = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'Insurance') {
+                                    $vehicle->insurance = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'PMI Due') {
+                                    $vehicle->PMI_due = \Carbon\Carbon::parse($firstNewReminder->next_reminder_date)->format('d-m-Y');
+                                } elseif ($fleet->planner_type === 'Brake Test Due') {
+                                    $vehicle->brake_test_due = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'Fridge Service') {
+                                    $vehicle->fridge_service = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'Fridge Calibration') {
+                                    $vehicle->fridge_calibration = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'Tail lift') {
+                                    $vehicle->tail_lift = $firstNewReminder->next_reminder_date;
+                                } elseif ($fleet->planner_type === 'Loler') {
+                                    $vehicle->loler = $firstNewReminder->next_reminder_date;
+                                }
+                                $vehicle->save();
+                            }
                         }
                     }
                 }
