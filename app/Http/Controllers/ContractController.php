@@ -847,16 +847,19 @@ class ContractController extends Controller
     }
 
     private function getDVSAAccessToken()
-    {
-        $response = Http::asForm()->post('https://login.microsoftonline.com/a455b827-244f-4c97-b5b4-ce5d13b4d00c/oauth2/v2.0/token', [
+{
+    $response = Http::asForm()->post(
+        'https://login.microsoftonline.com/' . env('AZURE_TENANT_ID') . '/oauth2/v2.0/token',
+        [
             'grant_type' => 'client_credentials',
-            'client_id' => 'e3bfee1c-d31c-428b-bdfe-bb9be902d652',
-            'client_secret' => 'REMOVED_SECRET',
+            'client_id' => env('AZURE_CLIENT_ID'),
+            'client_secret' => env('AZURE_CLIENT_SECRET'),
             'scope' => 'https://tapi.dvsa.gov.uk/.default',
-        ]);
+        ]
+    );
 
-        return $response['access_token'] ?? null;
-    }
+    return $response['access_token'] ?? null;
+}
 
     public function store(Request $request)
     {
