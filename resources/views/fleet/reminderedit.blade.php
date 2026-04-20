@@ -52,6 +52,27 @@ if ($nextPendingReminder) {
             </div>
         </div>
 
+        <!-- PMI Interval Dropdown -->
+        @if(in_array($reminder->fleet->planner_type, ['PMI Due', 'Brake Test Due']))
+        @php
+            $currentEvery = $reminder->fleet->every;
+            $options = [];
+            for ($i = 1; $i <= 10; $i++) {
+                $label = $i . ' Week' . ($i > 1 ? 's' : '');
+                if ($i == $currentEvery) {
+                    $label .= ' (Current)';
+                }
+                $options[$i] = $label;
+            }
+        @endphp
+        <div class="row">
+            <div class="form-group col-md-6">
+                {{ Form::label('pmi_intervals', __('PMI Interval')) }}
+                {{ Form::select('pmi_intervals', $options, $currentEvery, ['class' => 'form-control']) }}
+            </div>
+        </div>
+        @endif
+
         <!-- Vehicle Status Dropdown -->
         <div class="row">
             <div class="form-group col-md-6">

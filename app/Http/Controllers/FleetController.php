@@ -1282,8 +1282,9 @@ if (! is_array($vehicleGroupIds)) {
             $validator = \Validator::make(
                 $request->all(), [
                     'next_reminder_date' => 'required|date',
-                    'archive_reason' => 'nullable|string',
-                    'archive_other' => 'nullable|string|max:255', // Handle "Other" text if applicable
+                    'archive_reason'     => 'nullable|string',
+                    'archive_other'      => 'nullable|string|max:255',
+                    'pmi_intervals'      => 'nullable|integer|min:1|max:10',
                 ]
             );
 
@@ -1356,7 +1357,74 @@ if (! is_array($vehicleGroupIds)) {
                 return redirect()->back()->with('success', __('Reminder updated and future reminders deleted due to vehicle status: '.$request->archive_reason));
             }
 
-            // Update future reminders' next_reminder_date
+            // Handle interval change for PMI Due / Brake Test Due
+            $newInterval = $request->input('pmi_intervals');
+
+            if (
+                in_array($fleet->planner_type, ['PMI Due', 'Brake Test Due']) &&
+                $newInterval &&
+                (int) $newInterval !== (int) $fleet->every
+            ) {
+                // Update fleet interval and end_date
+                $fleet->every = (int) $newInterval;
+                $fleet->end_date = $newReminderDate->copy()->addYear()->format('Y-m-d');
+                $fleet->save();
+
+                $endDate = \Carbon\Carbon::parse($fleet->end_date);
+
+                // Get all existing pending reminders from current date onwards (ordered)
+                $pendingReminders = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $fleet->id)
+                    ->where('status', 'Pending')
+                    ->where('next_reminder_date', '>=', $newReminderDate->format('Y-m-d'))
+                    ->orderBy('next_reminder_date')
+                    ->get();
+
+                // Generate new dates using new interval
+                $newDates = [];
+                $genDate = $newReminderDate->copy();
+                while ($genDate <= $endDate) {
+                    $newDates[] = $genDate->format('Y-m-d');
+                    $genDate->addWeeks((int) $newInterval);
+                }
+
+                // Update existing reminders in place with new dates
+                foreach ($pendingReminders as $index => $pendingReminder) {
+                    if (isset($newDates[$index])) {
+                        $pendingReminder->next_reminder_date = $newDates[$index];
+                        $pendingReminder->save();
+                    } else {
+                        // More existing reminders than new dates — delete the extras
+                        $pendingReminder->delete();
+                    }
+                }
+
+                // More new dates than existing reminders — create the extras
+                $existingCount = $pendingReminders->count();
+                if (count($newDates) > $existingCount) {
+                    foreach (array_slice($newDates, $existingCount) as $extraDate) {
+                        \App\Models\FleetPlannerReminder::create([
+                            'fleet_planner_id' => $fleet->id,
+                            'next_reminder_date' => $extraDate,
+                            'status' => 'Pending',
+                        ]);
+                    }
+                }
+
+                // Update vehicle_details PMI_due / brake_test_due to first pending date
+                if ($fleet->vehicle && isset($newDates[0])) {
+                    if ($fleet->planner_type === 'PMI Due') {
+                        $fleet->vehicle->PMI_due = \Carbon\Carbon::parse($newDates[0])->format('d-m-Y');
+                        $fleet->vehicle->PMI_intervals = (int) $newInterval;
+                    } elseif ($fleet->planner_type === 'Brake Test Due') {
+                        $fleet->vehicle->brake_test_due = $newDates[0];
+                    }
+                    $fleet->vehicle->save();
+                }
+
+                return redirect()->back()->with('success', __('Reminder and interval updated successfully.'));
+            }
+
+            // No interval change — shift future reminders by date diff as before
             $reminders = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $fleet->id)
                 ->where('next_reminder_date', '>', $newReminderDate)
                 ->orderBy('next_reminder_date')
@@ -1374,12 +1442,10 @@ if (! is_array($vehicleGroupIds)) {
                         $futureDate = \Carbon\Carbon::parse($futureReminder->next_reminder_date)->addDays($dateDifference);
                     }
 
-                    // Ensure the next_reminder_date does not exceed the fleet's end_date
                     if ($futureDate <= $endDate) {
                         $futureReminder->next_reminder_date = $futureDate;
                         $futureReminder->save();
                     } else {
-                        // Optionally, you can delete reminders that exceed end_date
                         $futureReminder->delete();
                     }
                 }
