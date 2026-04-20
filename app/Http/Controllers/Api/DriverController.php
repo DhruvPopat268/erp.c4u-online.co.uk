@@ -207,7 +207,7 @@ class DriverController extends Controller
         // Fetch the latest policy assignments related to the driver's ID, grouped by policy_type
         $policyAssignments = \App\Models\PolicyAssignment::where('driver_id', $driver->id)
                                                          ->whereNotIn('status', ['Accept', 'Decline']) // Filter out 'Accept' and 'Decline'
-                                                         ->select('id', 'policy_type', 'policy_id', 'driver_id', 'policy_version', 'description', 'company_id')
+                                                         ->select('id', 'policy_type', 'policy_id', 'driver_id', 'policy_version', 'description', 'company_id', 'status', 'reviewed_on', 'next_review_date')
                                                          ->orderBy('policy_version', 'desc')
                                                          ->get()
                                                          ->unique('policy_id');
@@ -261,6 +261,9 @@ class DriverController extends Controller
                 'driver_id' => $policy->driver_id,
                 'version' => $policy->policy_version,
                 'description' => $contentLink,
+                'status' => $policy->status,
+                'reviewed_on' => $policy->reviewed_on,
+                'next_review_date' => $policy->next_review_date,
             ];
         }
 
