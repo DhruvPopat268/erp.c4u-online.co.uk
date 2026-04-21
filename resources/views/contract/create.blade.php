@@ -92,6 +92,7 @@
        <div class="form-group col-md-12" id="pmi_interval_wrapper" style="display: none;">
             {{ Form::label('PMI_intervals', __('PMI Intervals (In Week)')) }}
             {{ Form::select('PMI_intervals', ['' => 'Select week', '1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7', '8' => '8', '9' => '9', '10' => '10'], null, ['class' => 'form-control',  'id' => 'PMI_intervals']) }}
+            <small id="pmi_interval_error" style="color: red; display: none;">Please select PMI Interval.</small>
         </div>
          <div class="form-group col-md-12">
             {{ Form::label('PMI_due', __('PMI Due'),['class'=>'form-label']) }}
@@ -149,12 +150,26 @@ $(document).ready(function () {
             $('#PMI_intervals').val('');
             $('#PMI_due').val('');
         }
+        $('#pmi_interval_error').hide();
         calculatePMIDue();
     });
 
     // If PMI interval is selected or changed
     $('#PMI_intervals').on('change', function () {
+        $('#pmi_interval_error').hide();
         calculatePMIDue();
+    });
+
+    // Validate on form submit
+    $('form').on('submit', function (e) {
+        const inspectionDate = $('#date_of_inspection').val();
+        const pmiInterval = $('#PMI_intervals').val();
+        if (inspectionDate && !pmiInterval) {
+            e.preventDefault();
+            $('#pmi_interval_error').show();
+            $('#pmi_interval_wrapper').show();
+            $('#PMI_intervals').focus();
+        }
     });
 });
     if ($(".multi-select").length > 0) {
