@@ -1027,7 +1027,7 @@ class DashboardController extends Controller
 
                     return view('dashboard.crm-dashboard', compact('crm_data', 'companies', 'selectedCompanyId', 'totalApiCallCount', 'selectedCompanyApiCallCount', 'selectedCompanyName'));
                 } else {
-                    return $this->account_dashboard_index();
+                    return $this->account_dashboard_index(request());
                 }
 
             }
@@ -1135,7 +1135,7 @@ class DashboardController extends Controller
             }
         } else {
 
-            return $this->account_dashboard_index();
+            return $this->account_dashboard_index(request());
         }
     }
 
@@ -1580,7 +1580,7 @@ class DashboardController extends Controller
 
     //         return view('dashboard.crm-dashboard', compact('crm_data', 'companies', 'selectedCompanyId', 'totalApiCallCount', 'selectedCompanyApiCallCount', 'selectedCompanyName'));
     //     } else {
-    //         return $this->account_dashboard_index();
+    //         return $this->account_dashboard_index(request());
     //     }
     // }
 
@@ -2807,7 +2807,7 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
 
             return view('dashboard.crm-dashboard', compact('crm_data', 'companies', 'selectedCompanyId', 'totalApiCallCount', 'selectedCompanyApiCallCount', 'selectedCompanyName'));
         } else {
-            return $this->account_dashboard_index();
+            return $this->account_dashboard_index(request());
         }
     }
 
@@ -2868,7 +2868,7 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                 return view('dashboard.driver-dashboard', compact('crm_data'));
             }
         } else {
-            return $this->account_dashboard_index();
+            return $this->account_dashboard_index(request());
         }
     }
 
@@ -2891,7 +2891,7 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                 return view('dashboard.pos-dashboard', compact('pos_data', 'purchasesArray', 'posesArray'));
             }
         } else {
-            return $this->account_dashboard_index();
+            return $this->account_dashboard_index(request());
         }
     }
 
