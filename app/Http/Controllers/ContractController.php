@@ -923,7 +923,7 @@ class ContractController extends Controller
                     'vehicle_status' => $request->input('vehicle_status'),
                     'group_id' => $request->input('group_id'),
                     'depot_id' => $request->input('depot_id'),
-                    'registrationNumber' => $responseData['registrationNumber'],
+                    'registrationNumber' => $responseData['registrationNumber'] ?? $request->input('registrationNumber'),
                     'taxStatus' => $responseData['taxStatus'] ?? null,
                     'taxDueDate' => isset($responseData['taxDueDate']) ? date('d F Y', strtotime($responseData['taxDueDate'])) : null,
                     'motStatus' => $responseData['motStatus'] ?? null,
@@ -1087,18 +1087,19 @@ class ContractController extends Controller
 
                 // Handle the second API call only if the first one was successful
                 if ($api1Success) {
-                    $accessToken = $this->getDVSAAccessToken();
+                    try {
 
-                    if ($accessToken) {
-                        // Step 2: Call API 2 with token and registration
-                        $registration = $request->input('registrationNumber');
-                        $response2 = Http::withHeaders([
-                            'x-api-key' => $apiKey2,
-                            'Authorization' => 'Bearer '.$accessToken,
-                        ])->get("https://history.mot.api.gov.uk/v1/trade/vehicles/registration/$registration");
+                        $accessToken = $this->getDVSAAccessToken();
+
+                        if ($accessToken) {
+                            // Step 2: Call API 2 with token and registration
+                            $registration = $request->input('registrationNumber');
+                            $response2 = Http::withHeaders([
+                                'x-api-key' => $apiKey2,
+                                'Authorization' => 'Bearer '.$accessToken,
+                            ])->get("https://history.mot.api.gov.uk/v1/trade/vehicles/registration/$registration");
 
                         $responseVehicle = $response2->json();
-                        // Log::info('API 2 Response:', $responseVehicle);
 
                         if (! empty($responseVehicle)) {
                             // Step 3: Save Vehicle Data
@@ -1190,8 +1191,32 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
 
                             // Set the flag for successful API 2 call
                             $api2Success = true;
+                        } else {
                         }
                     }
+                    } catch (\Exception $e2) {
+                        // API 2 failed with exception, fallback will handle it below
+                    }
+                }
+
+                // If API 2 failed, still create a minimal vehicles row so vehicle appears everywhere
+                if (!$api2Success && $api1Success) {
+                    $fallbackVehicle = \App\Models\Vehicles::updateOrCreate(
+                        [
+                            'registrations' => $request->input('registrationNumber'),
+                            'companyName'   => $request->input('companyName'),
+                        ],
+                        [
+                            'created_by'    => \Auth::user()->id,
+                            'companyName'   => $request->input('companyName'),
+                            'registrations' => $request->input('registrationNumber'),
+                            'make'          => $responseData['make'] ?? null,
+                            'fuel_type'     => $responseData['fuelType'] ?? null,
+                            'vehicle_type'  => 'HGV',
+                        ]
+                    );
+                    $vehicleDetailsModel1->vehicle_id = $fallbackVehicle->id;
+                    $vehicleDetailsModel1->save();
                 }
 
                 // Check if both API calls were successful and redirect with appropriate message

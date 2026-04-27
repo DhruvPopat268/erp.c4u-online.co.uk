@@ -423,7 +423,7 @@ class WorkAroundController extends Controller
                 // Fetch all vehicles for company & PTC managers (no depot restriction)
                 $vehicles = \App\Models\Vehicles::where('companyName', $profile->company_id)
                     ->whereHas('vehicleDetail', function ($query) use ($allowedStatuses) {
-                        $query->whereIn('vehicle_status', $allowedStatuses); // Filter by status in vehicleDetail
+                        $query->whereIn('vehicle_status', $allowedStatuses);
                     })
                     ->with(['vehicleDetail' => function ($query) {
                         $query->select('id', 'vehicle_id', 'group_id', 'make', 'depot_id', 'vehicle_status', 'vehicle_nick_name');
@@ -466,15 +466,7 @@ class WorkAroundController extends Controller
                             ->whereIn('vehicle_status', $allowedStatuses);
                     })
                     ->with(['vehicleDetail' => function ($query) {
-                        $query->select(
-                            'id',
-                            'vehicle_id',
-                            'group_id',
-                            'make',
-                            'depot_id',
-                            'vehicle_status',
-                            'vehicle_nick_name'
-                        );
+                        $query->select('id', 'vehicle_id', 'group_id', 'make', 'depot_id', 'vehicle_status', 'vehicle_nick_name');
                     }])
                     ->get();
 

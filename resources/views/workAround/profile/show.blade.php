@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="form-check">
                                             <input class="form-check-input vehicle-group-checkbox" type="checkbox" value="{{ $group->id }}" id="group-{{ $group->id }}"
                                                 @foreach($vehicles as $vehicle)
-                                                    @if(in_array($vehicle->id, $selectedVehicles) && $vehicle->vehicleDetail->group_id == $group->id)
+                                                    @if(in_array($vehicle->id, $selectedVehicles) && $vehicle->vehicleDetail && $vehicle->vehicleDetail->group_id == $group->id)
                                                         checked
                                                         @break
                                                     @endif
@@ -181,11 +181,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <input class="form-check-input" type="checkbox" value="{{ $vehicle->id }}" id="vehicle-{{ $vehicle->id }}" name="selected_vehicles[]"
                                                             @if(in_array($vehicle->id, $selectedVehicles)) checked @endif>
                                                         <label class="form-check-label" for="vehicle-{{ $vehicle->id }}">
-                                                                                                                   @if($vehicle->vehicle_type == 'Trailer')
-                                                            {{ $vehicle->vehicleDetail->vehicle_nick_name ?? 'Null' }} - {{ $vehicle->vehicleDetail->make ?? 'Null' }}
-                                                        @else
-                                                            {{ $vehicle->registrations }} - {{ $vehicle->vehicleDetail->make ?? 'Null' }}
-                                                        @endif                                                        
+                                                            @if($vehicle->vehicle_type == 'Trailer')
+                                                                {{ $vehicle->vehicleDetail->vehicle_nick_name ?? $vehicle->registrations }}@if($vehicle->vehicleDetail && $vehicle->vehicleDetail->make) - {{ $vehicle->vehicleDetail->make }}@endif
+                                                            @else
+                                                                {{ $vehicle->registrations }}@if($vehicle->vehicleDetail && $vehicle->vehicleDetail->make) - {{ $vehicle->vehicleDetail->make }}@endif
+                                                            @endif
                                                         </label>
                                                     </div>
                                                 </div>
