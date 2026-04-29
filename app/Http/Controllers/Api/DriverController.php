@@ -3406,9 +3406,17 @@ if (
 
         // If token is not available or expired, fetch a new one
         if (! $token) {
+            $credential = \DB::table('dvla_credentials')->first();
+            if (!$credential) {
+                throw new \Exception('DVLA credentials not found in database.');
+            }
+            $password = $credential->password;
+
+            \Log::info('[Api\DriverController] getToken() using DVLA password: ' . $password);
+
             $response = Http::post('https://driver-vehicle-licensing.api.gov.uk/thirdparty-access/v1/authenticate', [
                 'userName' => 'paramounttransportconsultantsltd',
-                'password' => 'PtC@2026',
+                'password' => $password,
             ]);
 
             if ($response->successful()) {

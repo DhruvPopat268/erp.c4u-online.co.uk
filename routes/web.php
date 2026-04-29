@@ -457,6 +457,8 @@ Route::group(['middleware' => ['verified']], function () {
         ], function () {
             Route::resource('systems', SystemController::class);
             Route::post('email-settings', [SystemController::class, 'saveEmailSettings'])->name('email.settings');
+            Route::post('dvla-password-update', [SystemController::class, 'updateDvlaPassword'])->name('dvla.password.update');
+            Route::get('dvla-current-password', [SystemController::class, 'getDvlaCurrentPassword'])->name('dvla.current.password');
             Route::post('company-email-settings', [SystemController::class, 'saveCompanyEmailSettings'])->name('company.email.settings');
 
             Route::post('company-settings', [SystemController::class, 'saveCompanySettings'])->name('company.settings');

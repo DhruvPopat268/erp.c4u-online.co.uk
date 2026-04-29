@@ -335,6 +335,9 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
                         <a href="#email-settings" class="list-group-item list-group-item-action border-0">{{ __('Email Settings') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
+                        <a href="#dvla-password-settings" class="list-group-item list-group-item-action border-0">{{ __('DVLA Password Update') }}
+                            <div class="float-end"><i class="ti ti-chevron-right"></i></div>
+                        </a>
                         <a href="#payment-settings" class="list-group-item list-group-item-action border-0">{{ __('Payment Settings') }}
                             <div class="float-end"><i class="ti ti-chevron-right"></i></div>
                         </a>
@@ -781,6 +784,47 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
                             </div>
                         </div>
                         {{ Form::close() }}
+                    </div>
+                </div>
+
+                <!--DVLA Password Settings-->
+                <div id="dvla-password-settings" class="card">
+                    <div class="card-header">
+                        <h5>{{ __('DVLA Password Update') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="dvla_old_password">{{ __('Current Password') }}</label>
+                                    <div class="input-group">
+                                        <input type="password" name="dvla_old_password" id="dvla_old_password" class="form-control" placeholder="{{ __('Current DVLA Password') }}" value="" readonly>
+                                        <span class="input-group-text" style="cursor:pointer" onclick="toggleDvlaPassword('dvla_old_password', this)">
+                                            <i class="ti ti-eye"></i>
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">{{ __('Auto-filled from database if available.') }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label" for="dvla_new_password">{{ __('New Password') }}</label>
+                                    <div class="input-group">
+                                        <input type="password" name="dvla_new_password" id="dvla_new_password" class="form-control" placeholder="{{ __('Enter New DVLA Password') }}">
+                                        <span class="input-group-text" style="cursor:pointer" onclick="toggleDvlaPassword('dvla_new_password', this)">
+                                            <i class="ti ti-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="card-footer d-flex justify-content-end">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary" id="dvla_update_password_btn">{{ __('Update Password') }}</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2568,4 +2612,64 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
         </div>
     </div>
 </div>
+
+@push('script-page')
+<script>
+    function toggleDvlaPassword(fieldId, icon) {
+        var input = document.getElementById(fieldId);
+        var i = icon.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            i.classList.replace('ti-eye', 'ti-eye-off');
+        } else {
+            input.type = 'password';
+            i.classList.replace('ti-eye-off', 'ti-eye');
+        }
+    }
+
+    // Auto-fill current DVLA password from DB on page load
+    $.get('{{ route('dvla.current.password') }}', function(data) {
+        if (data.password) {
+            $('#dvla_old_password').val(data.password);
+        }
+    });
+
+    $('#dvla_update_password_btn').on('click', function() {
+        var oldPassword = $('#dvla_old_password').val();
+        var newPassword = $('#dvla_new_password').val();
+
+        if (!newPassword) {
+            show_toastr('Error', 'Please enter a new password.', 'error');
+            return;
+        }
+
+        $(this).attr('disabled', true).text('Updating...');
+
+        $.ajax({
+            url: '{{ route('dvla.password.update') }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                dvla_old_password: oldPassword,
+                dvla_new_password: newPassword,
+            },
+            success: function(response) {
+                if (response.success) {
+                    show_toastr('Success', response.message, 'success');
+                    $('#dvla_old_password').val(newPassword);
+                    $('#dvla_new_password').val('');
+                } else {
+                    show_toastr('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                show_toastr('Error', 'Something went wrong. Please try again.', 'error');
+            },
+            complete: function() {
+                $('#dvla_update_password_btn').attr('disabled', false).text('Update Password');
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -2963,18 +2963,35 @@ class DriverController extends Controller
 
         // If token is not available or expired, fetch a new one
         if (! $token) {
+            $credential = \DB::table('dvla_credentials')->first();
+            if (!$credential) {
+                \Log::error('[DriverController] getToken() - DVLA credentials not found in database.');
+                throw new \Exception('DVLA credentials not found in database.');
+            }
+            $password = $credential->password;
+
+            \Log::info('[DriverController] getToken() using DVLA password: ' . $password);
+            \Log::info('[DriverController] getToken() calling DVLA authenticate API...');
+
             $response = Http::post('https://driver-vehicle-licensing.api.gov.uk/thirdparty-access/v1/authenticate', [
                 'userName' => 'paramounttransportconsultantsltd',
-                'password' => 'PtC@2026',
+                'password' => $password,
             ]);
+
+            \Log::info('[DriverController] getToken() API response status: ' . $response->status());
+            \Log::info('[DriverController] getToken() API response body: ' . $response->body());
 
             if ($response->successful()) {
                 $token = $response->json()['id-token'];
                 // Store token in cache for 1 hour
                 Cache::put('api_token', $token, now()->addHours(1));
+                \Log::info('[DriverController] getToken() - Token cached successfully.');
             } else {
+                \Log::error('[DriverController] getToken() - Authentication failed. Status: ' . $response->status() . ', Body: ' . $response->body());
                 throw new \Exception('Authentication failed');
             }
+        } else {
+            \Log::info('[DriverController] getToken() - Using cached token.');
         }
 
         return $token;

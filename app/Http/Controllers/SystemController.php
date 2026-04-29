@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\GenerateOfferLetter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ExperienceCertificate;
 use Illuminate\Support\Facades\Artisan;
@@ -2236,6 +2237,66 @@ public function appVersionSettings(Request $request)
 
     return back()->with('success', 'App maintenance settings updated successfully');
 }
+
+    public function getDvlaCurrentPassword()
+    {
+        if (\Auth::user()->type !== 'super admin') {
+            return response()->json(['error' => 'Permission denied.'], 403);
+        }
+        $credential = DB::table('dvla_credentials')->first();
+        return response()->json(['password' => $credential ? $credential->password : '']);
+    }
+
+    public function updateDvlaPassword(Request $request)
+    {
+        if (\Auth::user()->type !== 'super admin') {
+            return response()->json(['error' => 'Permission denied.'], 403);
+        }
+
+        $request->validate([
+            'dvla_new_password' => 'required|string|min:6',
+        ]);
+
+        $oldPassword = $request->input('dvla_old_password');
+        $newPassword = $request->input('dvla_new_password');
+
+        // Call DVLA API to update password
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post('https://driver-vehicle-licensing.api.gov.uk/thirdparty-access/v1/password', [
+            'userName'    => 'paramounttransportconsultantsltd',
+            'password'    => $oldPassword,
+            'newPassword' => $newPassword,
+        ]);
+
+        if (!$response->successful()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'DVLA API error: ' . $response->body(),
+            ]);
+        }
+
+        // Store new password in DB
+        DB::table('dvla_credentials')->updateOrInsert(
+            ['id' => 1],
+            [
+                'username'   => 'paramounttransportconsultantsltd',
+                'password'   => $newPassword,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        // Clear cached DVLA token so next call uses new password
+        \Illuminate\Support\Facades\Cache::forget('api_token');
+
+        \Log::info('DVLA password updated successfully by user: ' . \Auth::user()->email);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'DVLA password updated successfully.',
+        ]);
+    }
 
 
 
