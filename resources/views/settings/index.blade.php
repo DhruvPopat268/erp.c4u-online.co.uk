@@ -798,12 +798,11 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
                                 <div class="form-group">
                                     <label class="form-label" for="dvla_old_password">{{ __('Current Password') }}</label>
                                     <div class="input-group">
-                                        <input type="password" name="dvla_old_password" id="dvla_old_password" class="form-control" placeholder="{{ __('Current DVLA Password') }}" value="" readonly>
+                                        <input type="password" name="dvla_old_password" id="dvla_old_password" class="form-control" placeholder="{{ __('Enter Current DVLA Password') }}">
                                         <span class="input-group-text" style="cursor:pointer" onclick="toggleDvlaPassword('dvla_old_password', this)">
                                             <i class="ti ti-eye"></i>
                                         </span>
                                     </div>
-                                    <small class="text-muted">{{ __('Auto-filled from database if available.') }}</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -2627,13 +2626,6 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
         }
     }
 
-    // Auto-fill current DVLA password from DB on page load
-    $.get('{{ route('dvla.current.password') }}', function(data) {
-        if (data.password) {
-            $('#dvla_old_password').val(data.password);
-        }
-    });
-
     $('#dvla_update_password_btn').on('click', function() {
         var oldPassword = $('#dvla_old_password').val();
         var newPassword = $('#dvla_new_password').val();
@@ -2656,7 +2648,7 @@ $wasabi_storage_validations = explode(',', $wasabi_storage_validation);
             success: function(response) {
                 if (response.success) {
                     show_toastr('Success', response.message, 'success');
-                    $('#dvla_old_password').val(newPassword);
+                    $('#dvla_old_password').val('');
                     $('#dvla_new_password').val('');
                 } else {
                     show_toastr('Error', response.message, 'error');

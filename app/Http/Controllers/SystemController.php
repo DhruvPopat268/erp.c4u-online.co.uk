@@ -2254,11 +2254,21 @@ public function appVersionSettings(Request $request)
         }
 
         $request->validate([
+            'dvla_old_password' => 'required|string',
             'dvla_new_password' => 'required|string|min:6',
         ]);
 
         $oldPassword = $request->input('dvla_old_password');
         $newPassword = $request->input('dvla_new_password');
+
+        // Match old password with DB
+        $credential = DB::table('dvla_credentials')->first();
+        if (!$credential || $credential->password !== $oldPassword) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password does not match our records.',
+            ]);
+        }
 
         // Call DVLA API to update password
         $response = \Illuminate\Support\Facades\Http::withHeaders([
