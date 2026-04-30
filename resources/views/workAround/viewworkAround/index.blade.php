@@ -80,6 +80,8 @@ function fetchDrivers() {
     let depotId = $('#depot_id').val();
     let groupId = $('#group_id').val();
 
+    $('#driver_id').html('<option>Loading...</option>').prop('disabled', true);
+
     $.ajax({
 
         url: '{{ route("get.drivers.bycompany") }}',
@@ -93,26 +95,18 @@ function fetchDrivers() {
         },
         success: function (data) {
 
-            let existingVal = $('#driver_id').val();
+            let existingVal = '{{ request("driver_id") }}';
 
-            // ❌ DO NOT RESET if already selected
-            if (!existingVal) {
             $('#driver_id').html('<option value="">Select Driver</option>');
-            }
 
             $.each(data, function (index, driver) {
-
                 let selected = (existingVal == driver.id) ? 'selected' : '';
-
-                // ✅ avoid duplicate
-                if ($('#driver_id option[value="'+driver.id+'"]').length === 0) {
                 $('#driver_id').append(
-                        `<option value="${driver.id}" ${selected}>
-                            ${driver.name.toUpperCase()}
-                        </option>`
+                    `<option value="${driver.id}" ${selected}>${driver.name.toUpperCase()}</option>`
                 );
-                }
             });
+
+            $('#driver_id').prop('disabled', false);
         }
     });
 }
@@ -123,10 +117,7 @@ function fetchVehicles(){
         let companyId = $('#company_id').val();
         let depotId = $('#depot_id').val();
 
-        if(!depotId){
-            $('#vehicle_id').html('<option value="">Select Depot First</option>');
-            return;
-    }
+        $('#vehicle_id').html('<option>Loading...</option>').prop('disabled', true);
 
     $.ajax({
         url: '{{ route("get.vehicles.bycompany") }}',
@@ -134,7 +125,7 @@ function fetchVehicles(){
         data:{
             _token:'{{ csrf_token() }}',
             company_id:companyId,
-                depot_ids:[depotId]
+            depot_ids: depotId ? [depotId] : []
         },
         success:function(data){
 
@@ -145,11 +136,11 @@ function fetchVehicles(){
                 let selected = selectedVehicleId == vehicle.id ? 'selected' : '';
 
                 $('#vehicle_id').append(
-                        `<option value="${vehicle.id}" ${selected}>
-                            ${vehicle.registrations.toUpperCase()}
-                        </option>`
+                    `<option value="${vehicle.id}" ${selected}>${vehicle.registrations.toUpperCase()}</option>`
                 );
             });
+
+            $('#vehicle_id').prop('disabled', false);
         }
     });
 }
@@ -157,9 +148,10 @@ function fetchVehicles(){
     // ================= INIT =================
             if (selectedCompanyId) {
                 loadDepots(selectedCompanyId, selectedDepotId);
-    loadGroups(selectedCompanyId, selectedGroupId);
-
-
+                loadGroups(selectedCompanyId, selectedGroupId);
+            } else {
+                fetchDrivers();
+                fetchVehicles();
             }
 
     // ================= EVENTS =================

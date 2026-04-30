@@ -745,13 +745,15 @@ class WorkAroundController extends Controller
         $depotIds = $request->input('depot_ids', []);
         $groupId = $request->input('group_id');
 
+        if (($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) && !$companyId) {
+            return response()->json([]);
+        }
+
         $query = \App\Models\Driver::where('driver_status', 'Active');
 
         if ($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) {
 
-            if ($companyId) {
-                $query->where('companyName', $companyId);
-            }
+            $query->where('companyName', $companyId);
 
             if (! empty($depotIds)) {
                 $query->whereIn('depot_id', $depotIds);
@@ -809,15 +811,17 @@ class WorkAroundController extends Controller
         $companyId = $request->input('company_id');
         $depotIds = $request->input('depot_ids', []);
 
+        if (($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) && !$companyId) {
+            return response()->json([]);
+        }
+
         $query = \App\Models\Vehicles::query();
 
         $query->join('vehicle_details', 'vehicles.id', '=', 'vehicle_details.vehicle_id');
 
         if ($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) {
 
-            if ($companyId) {
-                $query->where('vehicle_details.companyName', $companyId);
-            }
+            $query->where('vehicle_details.companyName', $companyId);
 
             if (! empty($depotIds)) {
                 $query->whereIn('vehicle_details.depot_id', $depotIds);
