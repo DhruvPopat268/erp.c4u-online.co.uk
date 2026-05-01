@@ -414,7 +414,7 @@ class WorkAroundController extends Controller
             $user = \Auth::user();
 
             // Allowed vehicle statuses
-            $allowedStatuses = ['Owned', 'Rented', 'Leased', 'Contract Hire', 'Depot Transfer'];
+            $excludedStatuses = ['Sold', 'Scrapped', 'Write off', 'In repair/VOR'];
 
             // If the user is an admin or PTC manager, show all profiles
             if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
@@ -422,8 +422,8 @@ class WorkAroundController extends Controller
 
                 // Fetch all vehicles for company & PTC managers (no depot restriction)
                 $vehicles = \App\Models\Vehicles::where('companyName', $profile->company_id)
-                    ->whereHas('vehicleDetail', function ($query) use ($allowedStatuses) {
-                        $query->whereIn('vehicle_status', $allowedStatuses);
+                    ->whereHas('vehicleDetail', function ($query) use ($excludedStatuses) {
+                        $query->whereNotIn('vehicle_status', $excludedStatuses);
                     })
                     ->with(['vehicleDetail' => function ($query) {
                         $query->select('id', 'vehicle_id', 'group_id', 'make', 'depot_id', 'vehicle_status', 'vehicle_nick_name');
@@ -460,10 +460,10 @@ class WorkAroundController extends Controller
 
                 // Fetch vehicles based on depot_id AND vehicle_group_id
                 $vehicles = \App\Models\Vehicles::where('companyName', $profile->company_id)
-                    ->whereHas('vehicleDetail', function ($query) use ($userDepotIds, $vehicleGroupIds, $allowedStatuses) {
+                    ->whereHas('vehicleDetail', function ($query) use ($userDepotIds, $vehicleGroupIds, $excludedStatuses) {
                         $query->whereIn('depot_id', $userDepotIds)
                             ->whereIn('group_id', $vehicleGroupIds)
-                            ->whereIn('vehicle_status', $allowedStatuses);
+                            ->whereNotIn('vehicle_status', $excludedStatuses);
                     })
                     ->with(['vehicleDetail' => function ($query) {
                         $query->select('id', 'vehicle_id', 'group_id', 'make', 'depot_id', 'vehicle_status', 'vehicle_nick_name');

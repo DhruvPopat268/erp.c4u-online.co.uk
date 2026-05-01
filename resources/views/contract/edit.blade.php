@@ -11,16 +11,25 @@
             {{ Form::label('vehicle_nick_name', __('Vehicle ID'),['class'=>'form-label']) }}
             {{ Form::text('vehicle_nick_name', $contract->vehicle_nick_name, array('class' => 'form-control')) }}
         </div>
+        @php
+            $fixedStatuses = ['Owned', 'Rented', 'Leased', 'Contract Hire', 'Depot Transfer', 'Archive'];
+            $currentStatus = $contract->vehicle_status;
+            $isCustomStatus = $currentStatus && !in_array($currentStatus, $fixedStatuses);
+            $statusOptions = [
+                'Owned'          => 'Owned',
+                'Rented'         => 'Rented',
+                'Leased'         => 'Leased',
+                'Contract Hire'  => 'Contract Hire',
+                'Depot Transfer' => 'Depot Transfer',
+                'Archive'        => 'Archive',
+            ];
+            if ($isCustomStatus) {
+                $statusOptions[$currentStatus] = 'Other (' . $currentStatus . ')';
+            }
+        @endphp
         <div class="form-group col-md-12">
             {{ Form::label('vehicle_status', __('Vehicle Status'), ['class' => 'form-label']) }}
-            {{ Form::select('vehicle_status', [
-                'Owned' => 'Owned',
-                'Rented' => 'Rented',
-                'Leased' => 'Leased',
-                'Contract Hire' => 'Contract Hire',
-                'Depot Transfer' => 'Depot Transfer',
-                'Archive' => 'Archive'
-            ], $contract->vehicle_status, ['class' => 'form-control', 'id' => 'vehicle_status']) }}
+            {{ Form::select('vehicle_status', $statusOptions, $currentStatus, ['class' => 'form-control', 'id' => 'vehicle_status']) }}
         </div>
 
         <div class="form-group col-md-12" id="archive_options" style="{{ $contract->vehicle_status == 'Archive' ? '' : 'display: none;' }}">

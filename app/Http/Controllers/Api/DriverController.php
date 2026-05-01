@@ -864,8 +864,8 @@ public function getProfileDetails(Request $request)
         ->where('work_around_profile_id', $profile->id)
         ->get();
 
-    // Allowed vehicle statuses
-    $allowedStatuses = ['Owned', 'Rented', 'Leased', 'Contract Hire', 'Depot Transfer'];
+    // Excluded vehicle statuses
+    $excludedStatuses = ['Sold', 'Scrapped', 'Write off', 'In repair/VOR'];
 
     // Initialize arrays to hold vehicle and question IDs
     $uniqueVehicleIds = [];
@@ -886,16 +886,16 @@ public function getProfileDetails(Request $request)
 
     // Fetch vehicles only if they belong to the driver's `depot_id`
     $vehicles = \App\Models\Vehicles::whereIn('id', $uniqueVehicleIds)
-        ->whereHas('vehicleDetail', function ($query) use ($allowedStatuses, $driver) {
-            $query->whereIn('vehicle_status', $allowedStatuses)
-                  ->where('depot_id', $driver->depot_id); // Filter by driver's depot_id
+        ->whereHas('vehicleDetail', function ($query) use ($excludedStatuses, $driver) {
+            $query->whereNotIn('vehicle_status', $excludedStatuses)
+                  ->where('depot_id', $driver->depot_id);
         })
         ->get();
 
     // Fetch vehicle details for make
     $vehicleDetails = \App\Models\vehicleDetails::whereIn('vehicle_id', $uniqueVehicleIds)
-        ->whereIn('vehicle_status', $allowedStatuses)
-        ->where('depot_id', $driver->depot_id) // Ensure vehicle is from the same depot as the driver
+        ->whereNotIn('vehicle_status', $excludedStatuses)
+        ->where('depot_id', $driver->depot_id)
         ->get()
         ->keyBy('vehicle_id');
 
