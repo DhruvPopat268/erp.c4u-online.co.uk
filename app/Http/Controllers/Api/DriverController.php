@@ -2836,8 +2836,8 @@ public function getDriverTrainingAssignments(Request $request)
     // Apply date filters if provided
     if ($fromDate && $toDate) {
         $query->whereHas('training', function ($q) use ($fromDate, $toDate) {
-            $q->whereDate('from_date', '>=', $fromDate)
-              ->whereDate('to_date', '<=', $toDate);
+            $q->whereDate('from_date', '<=', $toDate)
+              ->whereDate('to_date', '>=', $fromDate);
         });
     }
 
