@@ -299,7 +299,7 @@ public function getPolicyList(Request $request)
 
     // Fetch all policy assignments related to the driver's ID, including all statuses and versions
     $policyAssignments = \App\Models\PolicyAssignment::where('driver_id', $driver->id)
-                                                     ->select('id','policy_type', 'policy_id')
+                                                     ->select('id','policy_type', 'policy_id', 'status')
                                                      ->get();
 
     // Prepare an array to hold the policy data with names and links
@@ -330,16 +330,25 @@ public function getPolicyList(Request $request)
         }
 $policy_type_display = $policy->policy_type === 'bronze' ? 'browse' : $policy->policy_type;
 
-        // Add the policy assignment data with the name and content link to the array
         $policiesWithName[] = [
             'id' => $policy->policy_id,
             'policy_name' => $policyName,
             'policy_type' =>  $policy_type_display,
+            'status' => $policy->status,
         ];
     }
 
-    // Remove duplicates based on the 'id' field
-    $uniquePolicies = collect($policiesWithName)->unique('id')->values();
+    // Group by policy_id, isCompleted false if any assignment is Pending or Reassigned
+    $uniquePolicies = collect($policiesWithName)->groupBy('id')->map(function ($group) {
+        $hasPending = $group->contains(fn($p) => in_array($p['status'], ['Pending', 'Reassigned']));
+        $first = $group->first();
+        return [
+            'id' => $first['id'],
+            'policy_name' => $first['policy_name'],
+            'policy_type' => $first['policy_type'],
+            'isCompleted' => !$hasPending,
+        ];
+    })->values();
 
     // Return the policy assignments with names and links as JSON
     return response()->json([
