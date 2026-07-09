@@ -175,11 +175,22 @@ class DriverController extends Controller
     public function getDepotsByCompanyFilter(Request $request)
     {
         $companyId = $request->input('company_id');
+        $user = \Auth::user();
 
         if ($companyId) {
-            $depots = \App\Models\Depot::where('companyName', $companyId)->orderBy('name', 'asc')->get();
+            $query = \App\Models\Depot::where('companyName', $companyId)->orderBy('name', 'asc');
+
+            if (!$user->hasRole('company') && !$user->hasRole('PTC manager')) {
+                $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
+                if (!is_array($depotIds)) {
+                    $depotIds = [$user->depot_id];
+                }
+                $query->whereIn('id', $depotIds);
+            }
+
+            $depots = $query->get();
         } else {
-            $depots = []; // Return empty if no company is selected
+            $depots = [];
         }
 
         return response()->json($depots);

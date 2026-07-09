@@ -361,26 +361,7 @@
             }
         }
 
-        $(document).ready(function () {
-            $('#company_id').on('change', function () {
-                var selectedCompanyId = $(this).val();
 
-                // Reset the Depot dropdown
-                $('#depot_id').val('');
-                $('#depot_id option').hide();
-
-                // Show only depots belonging to the selected company
-                if (selectedCompanyId) {
-                    $('#depot_id option[data-company-id="' + selectedCompanyId + '"]').show();
-                } else {
-                    // If no company is selected, show the placeholder
-                    $('#depot_id option:first').show();
-                }
-            });
-
-            // Trigger change event to set initial state
-            $('#company_id').trigger('change');
-        });
         $(document).ready(function() {
             $('#vehicle_registration_number').on('blur', function() {
                 var registrationNumber = $(this).val();

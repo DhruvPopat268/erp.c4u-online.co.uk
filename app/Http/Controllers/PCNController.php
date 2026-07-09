@@ -277,14 +277,20 @@ public function create()
     $companies = CompanyDetails::orderBy('name', 'asc')->where('company_status', 'Active')->get();
     $depots = \App\Models\Depot::orderBy('name', 'asc')->get();
 } else {
-    // Fetch the company name for the logged-in user as objects
     $companies = CompanyDetails::where('created_by', '=', $user->creatorId())
         ->where('id', '=', $user->companyname)->where('company_status', 'Active')
-        ->get(); // Get full model objects
-        $depots = \App\Models\Depot::where('companyName', '=', $user->companyname)
+        ->get();
+
+    $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
+    if (!is_array($depotIds)) {
+        $depotIds = [$user->depot_id];
+    }
+
+    $depots = \App\Models\Depot::where('companyName', '=', $user->companyname)
+        ->whereIn('id', $depotIds)
         ->orderBy('name', 'asc')
         ->get();
-    }
+}
 
 
         // Return the create view
