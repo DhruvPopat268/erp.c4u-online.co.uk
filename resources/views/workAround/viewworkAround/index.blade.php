@@ -176,6 +176,15 @@ function fetchVehicles(){
     });
 
     });
+
+    // Client-side search for visible rows only
+    function filterTable(value) {
+        var filter = value.toLowerCase();
+        var rows = document.querySelectorAll('#walkaround-table tbody tr');
+        rows.forEach(function(row) {
+            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    }
 </script>
 @endpush
 
@@ -218,7 +227,7 @@ use Illuminate\Support\Str;
 @section('content')
 <div class="row" style="margin-bottom: 10px;margin-top:10px;">
     <div class="col-12">
-       <form method="GET" action="{{ route('viewworkaround.index') }}">
+       <form method="GET" action="{{ route('viewworkaround.index') }}" id="walkaround-filter-form">
           
             <div class="row">
                 @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
@@ -334,10 +343,13 @@ use Illuminate\Support\Str;
     </select>
 </div>
 
+                <input type="hidden" name="per_page" id="per_page_input" value="{{ $perPage }}">
+
                 <div class="col-md-4 mt-3">
                     <button type="submit" class="btn btn-primary mt-4">{{ __('Filter') }}</button>
                     <a href="{{ route('viewworkaround.index') }}" class="btn btn-secondary mt-4">{{ __('Reset Filter') }}</a>
                 </div>
+
             </div>
         </form>
     </div>
@@ -346,8 +358,25 @@ use Illuminate\Support\Str;
         <div class="col-9" style="width: 100%">
             <div class="card">
                 <div class="card-body table-border-style">
+                    <div class="dataTable-wrapper dataTable-loading sortable searchable fixed-columns">
+                    <div class="dataTable-top" style="margin-bottom: 10px;">
+                        <div class="dataTable-dropdown">
+                            <label>
+                                <select class="dataTable-selector" onchange="document.getElementById('per_page_input').value=this.value; document.getElementById('walkaround-filter-form').submit();">
+                                    @foreach([25,50,100] as $opt)
+                                        <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                                entries per page
+                            </label>
+                        </div>
+                        <div class="dataTable-search">
+                            <input class="dataTable-input" placeholder="Search..." type="text" onkeyup="filterTable(this.value)">
+                        </div>
+                    </div>
+                    <div class="dataTable-container">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="table dataTable-table" id="walkaround-table">
                             <thead>
                             <tr>
                                 <th class="text-end ">{{__('Action')}}</th>
@@ -422,6 +451,18 @@ use Illuminate\Support\Str;
                             </tbody>
                         </table>
                     </div>
+                    </div>
+                    @if(method_exists($walkaround, 'links'))
+                    <div class="dataTable-bottom">
+                        <div class="dataTable-info">
+                            Showing {{ $walkaround->firstItem() ?? 0 }} to {{ $walkaround->lastItem() ?? 0 }} of {{ $walkaround->total() }} entries
+                        </div>
+                        <nav class="dataTable-pagination">
+                            {{ $walkaround->appends(request()->query())->onEachSide(1)->links('vendor.pagination.simple-datatables') }}
+                        </nav>
+                    </div>
+                    @endif
+                    </div>{{-- end dataTable-wrapper --}}
                 </div>
             </div>
         </div>

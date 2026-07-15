@@ -877,6 +877,7 @@ class WorkAroundController extends Controller
             $selectedGroupId = $request->input('group_id');
             $filter = $request->input('filter');
             $issueFilter = $request->input('issue_filter');
+            $perPage = in_array((int) $request->input('per_page'), [25, 50, 100]) ? (int) $request->input('per_page') : 25;
             
              try {
                 $startDateFormatted = $startDate ? \Carbon\Carbon::createFromFormat('Y-m-d', $startDate)->startOfDay()->format('Y-m-d H:i:s') : null;
@@ -934,7 +935,7 @@ if (!$skipQuery) {
     return $query->whereBetween('created_at', [$startDateFormatted, $endDateFormatted]);
 })
                     ->orderBy('id', 'desc')
-                    ->get();
+                    ->paginate($perPage);
               } else {
 
                 $driverGroupIds = is_array($loggedInUser->driver_group_id)
@@ -998,35 +999,10 @@ if (!$skipQuery) {
 })
 
                     ->orderBy('id', 'desc')
-                    ->get();
+                    ->paginate($perPage);
             }
             
 }
-
-            if ($filter) {
-                switch ($filter) {
-                    case 'pending':
-                        $walkaround = $walkaround->whereNull('uploaded_date');
-                        break;
-
-                    case 'completed':
-                        $walkaround = $walkaround->whereNotNull('uploaded_date');
-                        break;
-
-                    case 'defects_found':
-                        $walkaround = $walkaround->where('defects_count', '>', 0);
-                        break;
-
-                    case 'rectified':
-                        $walkaround = $walkaround->where('rectified', '>', 0);
-                        break;
-
-                    case 'total':
-                    default:
-                        // show all
-                        break;
-                }
-            }
 
             // Use company ID instead of name to get details
             $companyDetails = CompanyDetails::where('id', $selectedCompanyId )->where('company_status', 'Active')->first();
@@ -1059,7 +1035,8 @@ if (!$skipQuery) {
             'selectedDriverId',
             'selectedVehicleId',
             'depots',
-            'groups'
+            'groups',
+            'perPage'
         ));
 
         } else {
