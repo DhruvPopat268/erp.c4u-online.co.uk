@@ -648,7 +648,8 @@ public function step2(Request $request)
                 $query->where('status', $request->status);
             }
 
-            $policyAssignments = $query->orderBy('id', 'desc')->get();
+            $perPage = $request->input('per_page', 25);
+            $policyAssignments = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
             // Resolve policy names
             $policyAssignments->each(function ($assignment) {
@@ -710,7 +711,7 @@ public function step2(Request $request)
 
             $groups = $groupsQuery->get();
 
-            return view('fors.assignpolicy.viewpolicy.view', compact('policyAssignments', 'companies', 'policyNames', 'policyVersions', 'statuses', 'companyDetails', 'depots', 'groups'));
+            return view('fors.assignpolicy.viewpolicy.view', compact('policyAssignments', 'companies', 'policyNames', 'policyVersions', 'statuses', 'companyDetails', 'depots', 'groups', 'perPage'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }

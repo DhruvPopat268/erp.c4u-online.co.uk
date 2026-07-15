@@ -166,7 +166,7 @@
 
 });
 
-   $(document).ready(function() {
+    $(document).ready(function() {
         $(document).on('click', '.reassign-policy-btn', function() {
             var assignmentId = $(this).data('assignment-id');
 
@@ -323,7 +323,13 @@
         });
     });
 
-
+    function filterTable(value) {
+        var filter = value.toLowerCase();
+        var rows = document.querySelectorAll('#policy-table tbody tr');
+        rows.forEach(function(row) {
+            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    }
 </script>
 @endpush
 <style>
@@ -507,10 +513,28 @@
         <i class="fa fa-download"></i> {{ __('Export') }}
     </a>
                   </div>
+                  <input type="hidden" name="per_page" id="per_page_input" value="{{ $perPage }}">
                </div>
             </form>
-            <div class="table-responsive mt-3">
-               <table class="table datatable">
+            <div class="dataTable-wrapper dataTable-loading sortable searchable fixed-columns mt-3">
+               <div class="dataTable-top" style="margin-bottom: 10px;">
+                  <div class="dataTable-dropdown">
+                     <label>
+                        <select class="dataTable-selector" onchange="document.getElementById('per_page_input').value=this.value; document.querySelector('form').submit();">
+                           @foreach([25, 50, 100] as $opt)
+                              <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                           @endforeach
+                        </select>
+                        entries per page
+                     </label>
+                  </div>
+                  <div class="dataTable-search">
+                     <input class="dataTable-input" placeholder="Search..." type="text" onkeyup="filterTable(this.value)">
+                  </div>
+               </div>
+               <div class="dataTable-container">
+               <div class="table-responsive">
+               <table class="table dataTable-table" id="policy-table">
                   <thead>
                      <tr>
                         <th class="text-end">{{ __('Action') }}</th>
@@ -576,7 +600,17 @@
                      @endforeach
                   </tbody>
                </table>
-            </div>
+               </div>
+               </div>
+               <div class="dataTable-bottom">
+                  <div class="dataTable-info">
+                     Showing {{ $policyAssignments->firstItem() ?? 0 }} to {{ $policyAssignments->lastItem() ?? 0 }} of {{ $policyAssignments->total() }} entries
+                  </div>
+                  <nav class="dataTable-pagination">
+                     {{ $policyAssignments->appends(request()->query())->onEachSide(1)->links('vendor.pagination.simple-datatables') }}
+                  </nav>
+               </div>
+            </div>{{-- end dataTable-wrapper --}}
          </div>
       </div>
    </div>
