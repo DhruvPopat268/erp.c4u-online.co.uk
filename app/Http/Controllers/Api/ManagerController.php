@@ -1697,7 +1697,8 @@ public function getManagerTrainingAssignments(Request $request)
             ->with(['training' => function ($query) use ($user, $startDate, $endDate) {
                 $query->where('companyName', $user->companyname) // Ensure it's for the correct company
                     ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                        return $query->whereBetween('from_date', [$startDate, $endDate]);
+                        return $query->whereDate('from_date', '<=', $endDate)
+                                     ->whereDate('to_date', '>=', $startDate);
                     })
                     ->with('trainingType', 'trainingCourse'); // Eager load relationships
             }])

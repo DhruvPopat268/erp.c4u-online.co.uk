@@ -99,7 +99,7 @@
 
 
 
-       $('form').submit(function() {
+       $('#policy-filter-form').submit(function() {
            checkFiltersApplied();
        });
 
@@ -391,7 +391,7 @@
    <div class="col-12">
       <div class="card">
          <div class="card-body">
-            <form method="GET" action="{{ route('fors.assignpolicy.view') }}">
+            <form method="GET" action="{{ route('fors.assignpolicy.view') }}" id="policy-filter-form">
                <div class="row g-2 align-items-end mb-3">
                   @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
                 <div class="col-lg-2 col-md-3 col-sm-6">
@@ -520,7 +520,7 @@
                <div class="dataTable-top" style="margin-bottom: 10px;">
                   <div class="dataTable-dropdown">
                      <label>
-                        <select class="dataTable-selector" onchange="document.getElementById('per_page_input').value=this.value; document.querySelector('form').submit();">
+                        <select class="dataTable-selector" onchange="document.getElementById('per_page_input').value=this.value; document.getElementById('policy-filter-form').submit();">
                            @foreach([25, 50, 100] as $opt)
                               <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
                            @endforeach
