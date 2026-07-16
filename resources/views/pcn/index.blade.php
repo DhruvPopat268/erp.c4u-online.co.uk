@@ -19,7 +19,7 @@
     'issuing_authority' => request('issuing_authority'),
     'from_date' => request('from_date'),
     'to_date' => request('to_date')
-]) }}" class="btn btn-primary">
+]) }}" class="btn btn-primary" onclick="showExportLoader()">
         Export To Excel
     </a>
 </div>
@@ -357,6 +357,13 @@
     //     }
     // }
 
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
+        }
+    }
 </script>
 
 @endpush

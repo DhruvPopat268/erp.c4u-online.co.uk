@@ -68,6 +68,14 @@
         // Enable/disable delete button when company dropdown changes
         document.getElementById('company-dropdown').addEventListener('change', toggleDeleteButton);
     });
+
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
+        }
+    }
 </script>
 @endpush
 
@@ -84,7 +92,7 @@
         'from_date' => request('from_date'),
         'to_date' => request('to_date')
     ]) }}"
-    class="btn btn-success">
+    class="btn btn-success" onclick="showExportLoader()">
             Export
         </a>
         <button id="delete-data-btn" class="btn btn-danger">

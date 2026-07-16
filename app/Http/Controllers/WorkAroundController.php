@@ -1493,7 +1493,9 @@ if (!$skipQuery) {
             $query->whereBetween('created_at', [$startDateFormatted, $endDateFormatted]);
         }
 
-        $walkaroundData = $query->get();
+        if (!$query->exists()) {
+            return redirect()->back()->with('error', 'No data available for export');
+        }
 
         // Determine company name for file naming
         if ($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) {
@@ -1502,10 +1504,32 @@ if (!$skipQuery) {
             $companyName = \App\Models\CompanyDetails::find($loggedInUser->companyname)->name ?? 'Not Found';
         }
 
-        // Generate file name dynamically
-        $fileName = $companyName.'_Walkaround_Data.xlsx';
+        $fileName = $companyName.'_Walkaround_Data.csv';
 
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\WalkaroundExport($walkaroundData), $fileName);
+        $headers = ['Driver', 'Depot', 'Vehicle', 'Walkaround Date', 'Duration', 'Defects', 'Rectified'];
+
+        return response()->streamDownload(function () use ($query, $headers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            $query->chunk(500, function ($chunk) use ($handle) {
+                foreach ($chunk as $walkaround) {
+                    fputcsv($handle, [
+                        $walkaround->driver ? strtoupper($walkaround->driver->name) : 'N/A',
+                        $walkaround->depot ? $walkaround->depot->name : 'N/A',
+                        $walkaround->vehicle
+                            ? ($walkaround->vehicle->vehicle_type == 'Trailer'
+                                ? (($walkaround->vehicle->vehicleDetail->vehicle_nick_name ?? 'No Vehicle ID') . ' - ' . ($walkaround->vehicle->vehicleDetail->make ?? 'No Make'))
+                                : (($walkaround->vehicle->registrations ?? 'No Registration') . ' - ' . ($walkaround->vehicle->vehicleDetail->make ?? 'No Make')))
+                            : 'N/A',
+                        $walkaround->uploaded_date ?? 'N/A',
+                        $walkaround->duration ?? '0',
+                        $walkaround->defects_count !== null ? (string) $walkaround->defects_count : '0',
+                        $walkaround->rectified ?? '0',
+                    ]);
+                }
+            });
+            fclose($handle);
+        }, $fileName);
     }
 
     public function exportWalkaroundPdf(Request $request)

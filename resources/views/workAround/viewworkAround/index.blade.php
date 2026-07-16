@@ -185,6 +185,14 @@ function fetchVehicles(){
             row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
         });
     }
+
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
+        }
+    }
 </script>
 @endpush
 
@@ -207,14 +215,14 @@ use Illuminate\Support\Str;
         @endcan  --}}
 
         @if((Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager')) && request('company_id'))
-    <a href="{{ route('export.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('Export') }}" class="btn btn-sm btn-primary">
+    <a href="{{ route('export.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('Export') }}" class="btn btn-sm btn-primary" onclick="showExportLoader()">
                 Export
             </a>
     <a href="{{ route('pdf.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('PDF') }}" class="btn btn-sm btn-primary">
                 PDF
             </a>
         @elseif(!(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager')))
-    <a href="{{ route('export.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('Export') }}" class="btn btn-sm btn-primary">
+    <a href="{{ route('export.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('Export') }}" class="btn btn-sm btn-primary" onclick="showExportLoader()">
                 Export
             </a>
     <a href="{{ route('pdf.workaround', ['company_id' => request('company_id'),'depot_id' => request('depot_id'),'start_date' => request('start_date'),'end_date' => request('end_date'),'driver_id' => request('driver_id'),'vehicle_id' => request('vehicle_id'),'group_id' => request('group_id'),'issue_filter' => request('issue_filter')]) }}" data-bs-toggle="tooltip" title="{{ __('PDF') }}" class="btn btn-sm btn-primary">

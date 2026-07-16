@@ -678,17 +678,83 @@ if ($request->payment_type === 'Postpaid') {
 
     public function companyDataexport(Request $request)
     {
-        // Fetch data from CompanyDetails model
-        $companyDetails = \App\Models\CompanyDetails::all();
+        $headers = [
+            'Account ID', 'Company Name', 'Company Email', 'Company Address', 'Company Contact Number',
+            'Manager Name', 'Device', 'Manager Name', 'Manager Contact Number', 'Manager DOB',
+            'Status', 'Compliance', 'Manager Email', 'Depot Name', 'Operating Centre',
+            'No Of Vehicles', 'No of Trailers', 'Depot Status',
+            'FORS Browse Policy', 'FORS Silver Policy', 'FORS Gold Policy',
+        ];
 
-        // Fetch data from Depot model
-        $depots = \App\Models\Depot::all()->keyBy('companyName');
+        $filename = 'CompanyDetails_Data_' . date('d-m-Y') . '.csv';
 
-        // Pass both sets of data to the export class
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\CompanyDataExport($companyDetails, $depots), 'CompanyDetails_Data_'.date('d-m-Y').'.xlsx');
+        return response()->streamDownload(function () use ($headers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+
+            $depots = \App\Models\Depot::all()->keyBy('companyName');
+
+            \App\Models\CompanyDetails::chunk(200, function ($companies) use ($handle, $depots) {
+                foreach ($companies as $item) {
+                    $operatorRoles  = json_decode($item->operator_role, true) ?? [];
+                    $operatorDobs   = json_decode($item->operator_dob, true) ?? [];
+                    $device         = json_decode($item->device, true) ?? [];
+                    $operator_name  = json_decode($item->operator_name, true) ?? [];
+                    $operator_phone = json_decode($item->operator_phone, true) ?? [];
+                    $status         = json_decode($item->status, true) ?? [];
+                    $compliance     = json_decode($item->compliance, true) ?? [];
+                    $operator_email = json_decode($item->operator_email, true) ?? [];
+
+                    $count = max(count($operatorRoles), count($device), count($operator_name), count($operator_phone), count($status), count($compliance), count($operator_email), 1);
+
+                    $depot = $depots->get($item->id);
+
+                    for ($i = 0; $i < $count; $i++) {
+                        $rawDob = \Illuminate\Support\Arr::get($operatorDobs, $i);
+                        $formattedDob = null;
+                        if ($rawDob) {
+                            $date = \DateTime::createFromFormat('d/m/Y', $rawDob);
+                            $formattedDob = $date ? $date->format('d/m/Y') : $rawDob;
+                        }
+
+                        $formatDate = function ($d) {
+                            if (!$d) return '-';
+                            $parsed = \DateTime::createFromFormat('Y-m-d', $d);
+                            return $parsed ? $parsed->format('d/m/Y') : $d;
+                        };
+
+                        fputcsv($handle, [
+                            $item->account_no,
+                            $item->name,
+                            $item->email,
+                            $item->address,
+                            $item->contact,
+                            \Illuminate\Support\Arr::get($operatorRoles, $i),
+                            \Illuminate\Support\Arr::get($device, $i),
+                            \Illuminate\Support\Arr::get($operator_name, $i),
+                            \Illuminate\Support\Arr::get($operator_phone, $i),
+                            $formattedDob,
+                            \Illuminate\Support\Arr::get($status, $i),
+                            \Illuminate\Support\Arr::get($compliance, $i),
+                            \Illuminate\Support\Arr::get($operator_email, $i),
+                            $depot ? $depot->name : null,
+                            $depot ? $depot->operating_centre : null,
+                            $depot ? $depot->vehicles : null,
+                            $depot ? $depot->trailers : null,
+                            $depot ? $depot->status : null,
+                            $formatDate($item->fors_browse_policy ?? null),
+                            $formatDate($item->fors_silver_policy ?? null),
+                            $formatDate($item->fors_gold_policy ?? null),
+                        ]);
+                    }
+                }
+            });
+
+            fclose($handle);
+        }, $filename);
     }
-    
-     public function creditcoinsindex(Request $request)
+
+    public function creditcoinsindex(Request $request)
     {
 
         if (\Auth::user()->can('manage credit logs')) {

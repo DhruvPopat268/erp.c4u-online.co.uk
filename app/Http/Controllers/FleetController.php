@@ -1507,20 +1507,53 @@ $selectedGroupId = $request->input('group_id');
         }
     }
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\CalendarEventsExport(
-                $selectedCompanyId,
-                $selectedVehicleId,
-                $selectedPlannerType,
-                $selectedYear,
-                $fromDate,
-                $toDate,
-                $depotIds ,// passed to the export
-                $selectedDepotId,
-    $selectedGroupId
-            ),
-            $fileName
-        );
+        $fileName = str_replace('.xlsx', '.csv', $fileName);
+
+        $query = Fleet::with(['reminders' => function ($q) use ($fromDate, $toDate, $selectedYear) {
+            if ($fromDate && $toDate) {
+                $q->whereBetween('next_reminder_date', [$fromDate, $toDate]);
+            } else {
+                $q->whereYear('next_reminder_date', $selectedYear);
+            }
+        }, 'vehicle', 'company'])
+            ->when($selectedCompanyId, fn ($q) => $q->where('company_id', $selectedCompanyId))
+            ->when($selectedDepotId, fn ($q) => $q->whereHas('vehicle', fn ($s) => $s->where('depot_id', $selectedDepotId)))
+            ->when($selectedGroupId, fn ($q) => $q->whereHas('vehicle', fn ($s) => $s->where('group_id', $selectedGroupId)))
+            ->when($selectedVehicleId, fn ($q) => $q->where('vehicle_id', $selectedVehicleId))
+            ->when($selectedPlannerType, fn ($q) => $q->where('planner_type', $selectedPlannerType))
+            ->whereHas('reminders', function ($q) use ($fromDate, $toDate, $selectedYear) {
+                if ($fromDate && $toDate) {
+                    $q->whereBetween('next_reminder_date', [$fromDate, $toDate]);
+                } else {
+                    $q->whereYear('next_reminder_date', $selectedYear);
+                }
+            })
+            ->when(!empty($depotIds), fn ($q) => $q->whereHas('vehicle', fn ($s) => $s->whereIn('depot_id', $depotIds)));
+
+        return response()->streamDownload(function () use ($query, $fromDate, $toDate, $selectedYear) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Company Name', 'Vehicle Registration Number', 'Planner Type', 'Reminder Date', 'Status', 'Interval']);
+
+            $query->chunk(500, function ($fleets) use ($out, $fromDate, $toDate, $selectedYear) {
+                foreach ($fleets as $fleet) {
+                    $intervalValue = (isset($fleet->every) && isset($fleet->interval))
+                        ? $fleet->every . ' ' . $fleet->interval
+                        : '-';
+                    foreach ($fleet->reminders as $reminder) {
+                        fputcsv($out, [
+                            $fleet->company ? $fleet->company->name : 'N/A',
+                            $fleet->vehicle->registrationNumber ?? '',
+                            $fleet->planner_type,
+                            \Carbon\Carbon::parse($reminder->next_reminder_date)->format('d/m/Y'),
+                            $reminder->status,
+                            $intervalValue,
+                        ]);
+                    }
+                }
+            });
+
+            fclose($out);
+        }, $fileName, ['Content-Type' => 'text/csv']);
     }
 
     public function pdfCalendar(Request $request)

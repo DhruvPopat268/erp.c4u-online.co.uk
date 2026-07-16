@@ -13,7 +13,15 @@
 
     function handleDepotChoice(choice) {
         if (choice === 'yes') {
-            window.location.href = "{{ route('depot.index') }}"; // Redirect to the depot index page
+            window.location.href = "{{ route('depot.index') }}";
+        }
+    }
+
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
         }
     }
 </script>
@@ -27,7 +35,7 @@
         <a href="#" data-size="md" data-url="{{ route('contractType.create') }}" data-ajax-popup="true" data-ajax-popup="true" data-title="{{__('Create New Company')}}"class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
-        <a href="{{route('companyDataexport.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary">
+        <a href="{{route('companyDataexport.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary" onclick="showExportLoader()">
             <i class="ti ti-file-export"></i>
         </a>
         <a href="#" data-size="md"  data-bs-toggle="tooltip" title="{{__('Import')}}" data-url="{{ route('contractType.file.import') }}" data-ajax-popup="true" data-title="{{__('Import Operator CSV file')}}" class="btn btn-sm btn-primary">

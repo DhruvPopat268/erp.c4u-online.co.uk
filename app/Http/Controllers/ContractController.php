@@ -6176,7 +6176,7 @@ if (!is_array($userGroupIds)) {
 
         // Prepare the query based on the role and filters
         if (\Auth::user()->hasRole('company') || \Auth::user()->hasRole('PTC manager')) {
-            $dataQuery = \App\Models\vehicleDetails::with('types', 'vehicle', 'depot')
+            $query = \App\Models\vehicleDetails::with('types', 'vehicle', 'depot')
              ->when(! empty($selectedDepotIds), function ($query) use ($selectedDepotIds) {
                     return $query->where('depot_id', $selectedDepotIds);
                 })
@@ -6193,36 +6193,36 @@ if (!is_array($userGroupIds)) {
 
             // Apply the company filter
             if ($selectedCompanyId) {
-                $dataQuery->where('companyName', $selectedCompanyId);
+                $query->where('companyName', $selectedCompanyId);
             }
 
             if ($selectedDepotIds) {
-                $dataQuery->where('depot_id', $selectedDepotIds);
+                $query->where('depot_id', $selectedDepotIds);
             }
 
             if ($selectedVehicleStatus) {
                 if (strtolower($selectedVehicleStatus) === 'archive') {
-                    $dataQuery->where(function ($q) {
+                    $query->where(function ($q) {
                         $q->where('vehicle_status', 'Archive')
                             ->orWhere('vehicle_status', 'like', 'Archive%');
                     });
                 } else {
-                    $dataQuery->where('vehicle_status', $selectedVehicleStatus);
+                    $query->where('vehicle_status', $selectedVehicleStatus);
                 }
             }
 
             if (! empty($selectedIds)) {
-                $dataQuery->whereIn('id', $selectedIds);
+                $query->whereIn('id', $selectedIds);
             }
 
             // Apply the company status filter to ensure only 'Active' companies are included
-            $dataQuery->whereHas('types', function ($query) {
+            $query->whereHas('types', function ($query) {
                 $query->where('company_status', 'Active'); // Only 'Active' company status
             });
 
             // Apply the filter column and value
             if ($selectedFilterColumn && $selectedFilterValue) {
-                $dataQuery->when($selectedFilterColumn && $selectedFilterValue, function ($query) use ($selectedFilterColumn, $selectedFilterValue, $expirySoonDate, $today) {
+                $query->when($selectedFilterColumn && $selectedFilterValue, function ($query) use ($selectedFilterColumn, $selectedFilterValue, $expirySoonDate, $today) {
                     if ($selectedFilterColumn == 'taxDueDate') {
                         if ($selectedFilterValue == 'expiry') {
                             return $query->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '<', $today); // Expired
@@ -6269,18 +6269,17 @@ if (!is_array($userGroupIds)) {
             }
 
             // Get the filtered data
-            $data = $dataQuery->get();
         } else {
             // If the user doesn't have the 'company' role, filter only by the user's company
-            $data = \App\Models\vehicleDetails::with('types', 'vehicle', 'depot')
+            $query = \App\Models\vehicleDetails::with('types', 'vehicle', 'depot')
                 ->where('companyName', \Auth::user()->companyname)
                 ->whereIn('depot_id', $depotIds)->whereIn('group_id', $userGroupIds)
-                 ->when(! empty($selectedDepotIds), function ($query) use ($selectedDepotIds) {
-                    return $query->where('depot_id', $selectedDepotIds);
+                ->when(! empty($selectedDepotIds), function ($q) use ($selectedDepotIds) {
+                    return $q->where('depot_id', $selectedDepotIds);
                 })
-                ->when($selectedGroupId, function ($query) use ($selectedGroupId) {
-                return $query->where('group_id',$selectedGroupId);
-            })
+                ->when($selectedGroupId, function ($q) use ($selectedGroupId) {
+                    return $q->where('group_id', $selectedGroupId);
+                })
                 ->when(! $selectedVehicleStatus, function ($q) {
                     $q->where(function ($subQ) {
                         $subQ->whereNull('vehicle_status')
@@ -6288,74 +6287,109 @@ if (!is_array($userGroupIds)) {
                             ->orWhere('vehicle_status', 'not like', 'Archive%');
                     });
                 })
-                ->whereHas('types', function ($query) {
-                    $query->where('company_status', 'Active'); // Only 'Active' company status
+                ->whereHas('types', function ($q) {
+                    $q->where('company_status', 'Active');
                 })
-                ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
-                    return $query->where('companyName', $selectedCompanyId);
-                })->when($selectedVehicleStatus, function ($q) use ($selectedVehicleStatus) {
+                ->when($selectedCompanyId, function ($q) use ($selectedCompanyId) {
+                    return $q->where('companyName', $selectedCompanyId);
+                })
+                ->when($selectedVehicleStatus, function ($q) use ($selectedVehicleStatus) {
                     if (strtolower($selectedVehicleStatus) === 'archive') {
                         return $q->where(function ($subQ) {
                             $subQ->where('vehicle_status', 'Archive')
                                 ->orWhere('vehicle_status', 'like', 'Archive%');
                         });
                     }
-
                     return $q->where('vehicle_status', $selectedVehicleStatus);
                 })
-                ->when(! empty($selectedIds), function ($query) use ($selectedIds) {   // âœ… added for selected checkboxes
-                    return $query->whereIn('id', $selectedIds);
-                })->when($selectedFilterColumn && $selectedFilterValue, function ($query) use ($selectedFilterColumn, $selectedFilterValue, $expirySoonDate, $today) {
+                ->when(! empty($selectedIds), function ($q) use ($selectedIds) {
+                    return $q->whereIn('id', $selectedIds);
+                })
+                ->when($selectedFilterColumn && $selectedFilterValue, function ($q) use ($selectedFilterColumn, $selectedFilterValue, $expirySoonDate, $today) {
                     if ($selectedFilterColumn == 'taxDueDate') {
                         if ($selectedFilterValue == 'expiry') {
-                            return $query->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '<', $today); // Expired
+                            return $q->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '<', $today);
                         }
                         if ($selectedFilterValue == 'expiry_soon') {
-                            return $query->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '>=', $today)
-                                ->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '<=', $expirySoonDate); // Expiry soon
+                            return $q->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '>=', $today)
+                                ->whereDate(\DB::raw('STR_TO_DATE(taxDueDate, "%d %M %Y")'), '<=', $expirySoonDate);
                         }
                     }
-
                     if ($selectedFilterColumn == 'PMI_due') {
                         if ($selectedFilterValue == 'expiry') {
-                            return $query->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '<', $today); // Expired
+                            return $q->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '<', $today);
                         }
                         if ($selectedFilterValue == 'expiry_soon') {
-                            return $query->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '>=', $today)
-                                ->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '<=', $expirySoonDate); // Expiry soon
+                            return $q->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '>=', $today)
+                                ->whereDate(\DB::raw('STR_TO_DATE(PMI_due, "%d-%m-%Y")'), '<=', $expirySoonDate);
                         }
                     }
-
                     if (in_array($selectedFilterColumn, ['tacho_calibration', 'dvs_pss_permit_expiry', 'insurance', 'brake_test_due', 'annual_test_expiry_date'])) {
                         if ($selectedFilterColumn == 'annual_test_expiry_date') {
                             if ($selectedFilterValue == 'expiry') {
-                                return $query->whereHas('vehicle', function ($q) use ($today) {
-                                    $q->whereDate('annual_test_expiry_date', '<', $today); // Expired
+                                return $q->whereHas('vehicle', function ($sq) use ($today) {
+                                    $sq->whereDate('annual_test_expiry_date', '<', $today);
                                 });
                             }
                             if ($selectedFilterValue == 'expiry_soon') {
-                                return $query->whereHas('vehicle', function ($q) use ($expirySoonDate, $today) {
-                                    $q->whereDate('annual_test_expiry_date', '>=', $today)
-                                        ->whereDate('annual_test_expiry_date', '<=', $expirySoonDate); // Expiry soon (within 15 days)
+                                return $q->whereHas('vehicle', function ($sq) use ($expirySoonDate, $today) {
+                                    $sq->whereDate('annual_test_expiry_date', '>=', $today)
+                                        ->whereDate('annual_test_expiry_date', '<=', $expirySoonDate);
                                 });
                             }
                         }
                         if ($selectedFilterValue == 'expiry') {
-                            return $query->whereDate($selectedFilterColumn, '<', $today); // Expired
+                            return $q->whereDate($selectedFilterColumn, '<', $today);
                         }
                         if ($selectedFilterValue == 'expiry_soon') {
-                            return $query->whereDate($selectedFilterColumn, '>=', $today)
-                                ->whereDate($selectedFilterColumn, '<=', $expirySoonDate); // Expiry soon
+                            return $q->whereDate($selectedFilterColumn, '>=', $today)
+                                ->whereDate($selectedFilterColumn, '<=', $expirySoonDate);
                         }
                     }
-                })
-                ->get();
+                });
         }
 
-        // Adjust the export logic as per your requirement
-        $name = 'Vehicle Data_'.date('d-m-Y');
+        $filename = 'Vehicle Data_' . date('d-m-Y') . '.csv';
+        $headers = [
+            'Company Name', 'Depot Name', 'Vehicle Group', 'Vehicle Registration Number',
+            'Make', 'Model', 'Road Tax', 'MOT', 'Tacho Calibration', 'DVS/PSS Permit Expiry',
+            'Insurance Type', 'Insurance', 'PMI Due', 'Brake Test Due',
+            'Date Of Inspection', 'Odometer Reading', 'Vehicle Status',
+        ];
 
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\VehicleDataExport($data), $name.'.xlsx');
+        $formatDate = function ($date) {
+            if (!$date || $date === '-') return '-';
+            try { return \Carbon\Carbon::parse($date)->format('d/m/Y'); } catch (\Exception $e) { return $date; }
+        };
+
+        return response()->streamDownload(function () use ($query, $headers, $formatDate) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            $query->chunk(500, function ($chunk) use ($handle, $formatDate) {
+                foreach ($chunk as $d) {
+                    fputcsv($handle, [
+                        $d->types ? $d->types->name : 'N/A',
+                        $d->depot ? $d->depot->name : 'N/A',
+                        $d->group ? $d->group->name : 'N/A',
+                        $d->registrationNumber,
+                        $d->make,
+                        $d->vehicle ? $d->vehicle->model : 'N/A',
+                        $formatDate($d->taxDueDate),
+                        $d->vehicle && $d->vehicle->annual_test_expiry_date ? \Carbon\Carbon::parse($d->vehicle->annual_test_expiry_date)->format('d/m/Y') : '-',
+                        $formatDate($d->tacho_calibration),
+                        $formatDate($d->dvs_pss_permit_expiry),
+                        $d->insurance_type,
+                        $formatDate($d->insurance),
+                        $formatDate($d->PMI_due),
+                        $formatDate($d->brake_test_due),
+                        $formatDate($d->date_of_inspection),
+                        $d->odometer_reading,
+                        $d->vehicle_status,
+                    ]);
+                }
+            });
+            fclose($handle);
+        }, $filename);
     }
 
 

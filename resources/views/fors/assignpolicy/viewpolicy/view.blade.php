@@ -330,6 +330,22 @@
             row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
         });
     }
+
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            // Hide once browser starts downloading (iframe trick)
+            var iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            iframe.onload = function() {
+                loader.style.display = 'none';
+                document.body.removeChild(iframe);
+            };
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
+        }
+    }
 </script>
 @endpush
 <style>
@@ -509,7 +525,8 @@
                      <a id="download_pdf_btn" href="{{ route('assign.policy.pdf', request()->query()) }}" class="btn btn-success me-2" style="display:none;">{{ __('Generate Policy') }}</a>
                      <a href="{{ route('assign.policy.export', request()->query()) }}"
        class="btn btn-success"
-       id="export_btn">
+       id="export_btn"
+       onclick="showExportLoader()">
         <i class="fa fa-download"></i> {{ __('Export') }}
     </a>
                   </div>

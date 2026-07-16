@@ -591,9 +591,12 @@ public function step2(Request $request)
              $selectedGroupId = $request->input('group_id');
 
         if ($user->can('manage assign policy')) {
-            $query = PolicyAssignment::with(['driver', 'company'])
+            $query = PolicyAssignment::with([
+                    'driver:id,name,depot_id,group_id',
+                    'company:id,name',
+                ])
                 ->whereHas('company', function ($q) {
-                    $q->where('company_status', 'Active'); // Only include assignments where the company is active
+                    $q->where('company_status', 'Active');
                 });
 
             // Determine the company ID for filtering
@@ -651,39 +654,46 @@ public function step2(Request $request)
             $perPage = $request->input('per_page', 25);
             $policyAssignments = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
-            // Resolve policy names
-            $policyAssignments->each(function ($assignment) {
-                $assignment->policy_name = $this->getPolicyName($assignment->policy_id);
+            // Preload all policy names in ONE query instead of N+1
+            $allPolicyIds = $policyAssignments->pluck('policy_id')->unique();
+            $allPolicies = ForsBronze::whereIn('id', $allPolicyIds)->pluck('bronze_policy_name', 'id');
+
+            // Resolve policy names from memory — zero extra queries
+            $policyAssignments->each(function ($assignment) use ($allPolicies) {
+                $assignment->policy_name = $allPolicies->get($assignment->policy_id, 'Unknown Policy');
             });
 
             // Get companies and policy names for filtering
             if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
-                $companies = CompanyDetails::where('company_status', 'Active')->get(); // Only Active companies
+                $companies = CompanyDetails::where('company_status', 'Active')->get();
             } else {
-                $userCompanyId = $user->companyname; // Get the company ID of the logged-in user
-                $companies = CompanyDetails::where('id', $userCompanyId)->where('company_status', 'Active')->get(); // Fetch only the user's active company
+                $userCompanyId = $user->companyname;
+                $companies = CompanyDetails::where('id', $userCompanyId)->where('company_status', 'Active')->get();
             }
 
             // Fetch policy IDs and policy versions for the selected company
             $policyNames = [];
-            $policyVersions = []; // Initialize the variable
+            $policyVersions = [];
 
             if ($request->has('company_id') && $request->company_id) {
                 $policyIds = PolicyAssignment::where('company_id', $request->company_id)
-                    ->pluck('policy_id');
+                    ->pluck('policy_id')
+                    ->unique();
 
+                // Preload all policy names for the dropdown in ONE query
+                $dropdownPolicies = ForsBronze::whereIn('id', $policyIds)->pluck('bronze_policy_name', 'id');
                 foreach ($policyIds as $policyId) {
-                    $policyNames[$policyId] = $this->getPolicyName($policyId);
+                    $policyNames[$policyId] = $dropdownPolicies->get($policyId, 'Unknown Policy');
                 }
 
                 // Fetch unique policy versions and sort them as version numbers
-                $query = PolicyAssignment::where('company_id', $request->company_id);
+                $versionQuery = PolicyAssignment::where('company_id', $request->company_id);
 
                 if ($request->has('policy_id') && $request->policy_id && $request->policy_id != 'all') {
-                    $query->where('policy_id', $request->policy_id);
+                    $versionQuery->where('policy_id', $request->policy_id);
                 }
 
-                $policyVersions = $query->pluck('policy_version')
+                $policyVersions = $versionQuery->pluck('policy_version')
                     ->unique()
                     ->sort(function ($a, $b) {
                         return version_compare($a, $b);
@@ -693,9 +703,9 @@ public function step2(Request $request)
                     });
             }
 
-            // Fetch unique status values
-            $statuses = PolicyAssignment::distinct()->pluck('status')->toArray();
-            $companyDetails = \App\Models\CompanyDetails::find(Auth::user()->companyname);
+            // Hardcoded statuses — avoids full table scan on every request
+            $statuses = ['Pending', 'Accept', 'Decline', 'Reassigned'];
+            $companyDetails = $companies->firstWhere('id', Auth::user()->companyname);
 
             $depotsQuery = \App\Models\Depot::orderBy('name', 'asc');
             if (! $user->hasRole('company') && ! $user->hasRole('PTC manager')) {
@@ -738,7 +748,12 @@ public function step2(Request $request)
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $query = PolicyAssignment::with(['driver', 'company', 'creator'])
+        $query = PolicyAssignment::with([
+                'driver:id,name',
+                'company:id,name',
+                'creator:id,username',
+            ])
+            ->select('id', 'driver_id', 'company_id', 'assigned_by', 'policy_id', 'policy_version', 'status', 'duration', 'reviewed_on', 'comment', 'updated_at')
             ->whereHas('company', function ($q) {
                 $q->where('company_status', 'Active');
             });
@@ -790,38 +805,44 @@ public function step2(Request $request)
             $query->where('status', $request->status);
         }
 
-        $assignments = $query->get();
-
-        // Prepare export data
-        $exportData = $assignments->map(function ($row) {
-            return [
-                'Company' => strtoupper($row->company->name ?? ''),
-                'Driver' => $row->driver->name ?? '',
-                'Policy Name' => $this->getPolicyName($row->policy_id),
-                'Policy Version' => $row->policy_version,
-                'Status' => $row->status,
-                'Duration' => $row->duration,
-                'Release Date' => $row->reviewed_on,
-
-                'Comment' => $row->comment ?? '',
-                'Assigned By' => $row->creator->username ?? '',
-                'Action Date' => $row->status === 'Pending' ? '-' : ($row->updated_at ? $row->updated_at->format('d/m/Y H:i') : '-'),
-            ];
-        });
-
-        if ($exportData->isEmpty()) {
+        if (!$query->exists()) {
             return redirect()->back()->with('error', 'No data available for export');
         }
 
-        // CSV Download
         $filename = 'policy_assignments_'.date('Ymd_His').'.csv';
+        $headers = ['Company', 'Driver', 'Policy Name', 'Policy Version', 'Status', 'Duration', 'Release Date', 'Comment', 'Assigned By', 'Action Date'];
 
-        return response()->streamDownload(function () use ($exportData) {
+        // Pre-load all policy names into a flat map to avoid per-row DB queries
+        $policyMap = [];
+        foreach (\App\Models\ForsBronze::select('id', 'bronze_policy_name')->get() as $p) {
+            $policyMap[$p->id] = $p->bronze_policy_name;
+        }
+        foreach (\App\Models\ForsSilver::select('id', 'silver_policy_name')->get() as $p) {
+            $policyMap[$p->id] = $p->silver_policy_name;
+        }
+        foreach (\App\Models\ForsGold::select('id', 'gold_policy_name')->get() as $p) {
+            $policyMap[$p->id] = $p->gold_policy_name;
+        }
+
+        return response()->streamDownload(function () use ($query, $headers, $policyMap) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, array_keys($exportData->first()));
-            foreach ($exportData as $row) {
-                fputcsv($handle, $row);
-            }
+            fputcsv($handle, $headers);
+            $query->chunk(500, function ($chunk) use ($handle, $policyMap) {
+                foreach ($chunk as $row) {
+                    fputcsv($handle, [
+                        strtoupper($row->company->name ?? ''),
+                        $row->driver->name ?? '',
+                        $policyMap[$row->policy_id] ?? 'Unknown Policy',
+                        $row->policy_version,
+                        $row->status,
+                        $row->duration,
+                        $row->reviewed_on,
+                        $row->comment ?? '',
+                        $row->creator->username ?? '',
+                        $row->status === 'Pending' ? '-' : ($row->updated_at ? $row->updated_at->format('d/m/Y H:i') : '-'),
+                    ]);
+                }
+            });
             fclose($handle);
         }, $filename);
     }
@@ -879,62 +900,40 @@ public function step2(Request $request)
 
     public function getPolicyNamesList(Request $request)
     {
-    $user = \Auth::user();
+        $user = \Auth::user();
 
-    // ✅ IMPORTANT: company resolve karo
-    if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
-        $companyId = $request->input('company_id');
-    } else {
-        // ✅ other user → auto company
-        $companyId = $user->companyname;
-    }
+        $companyId = ($user->hasRole('company') || $user->hasRole('PTC manager'))
+            ? $request->input('company_id')
+            : $user->companyname;
 
-        $policyNames = [];
-
-        if ($companyId) {
-
-        if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
-
-            $policyIds = PolicyAssignment::where('company_id', $companyId)
-                ->pluck('policy_id');
-
-        } else {
-
-            $depotIds = is_array($user->depot_id)
-                ? $user->depot_id
-                : json_decode($user->depot_id, true);
-
-            $driverGroupIds = is_array($user->driver_group_id)
-                ? $user->driver_group_id
-                : json_decode($user->driver_group_id, true);
-
-            $policyIds = PolicyAssignment::where('company_id', $companyId)
-                ->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds) {
-                    $q->whereIn('depot_id', $depotIds)
-                      ->whereIn('group_id', $driverGroupIds);
-                })
-                ->pluck('policy_id');
+        if (! $companyId) {
+            return response()->json(['policy_names' => []]);
         }
 
-            foreach ($policyIds as $policyId) {
-                $policyNames[$policyId] = $this->getPolicyName($policyId);
-            }
+        $query = PolicyAssignment::where('company_id', $companyId);
+
+        if (! ($user->hasRole('company') || $user->hasRole('PTC manager'))) {
+            $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
+            $driverGroupIds = is_array($user->driver_group_id) ? $user->driver_group_id : json_decode($user->driver_group_id, true);
+
+            $query->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds) {
+                $q->whereIn('depot_id', $depotIds)->whereIn('group_id', $driverGroupIds);
+            });
         }
+
+        $policyIds = $query->pluck('policy_id')->unique();
+
+        // Single query to get all policy names at once
+        $policyNames = ForsBronze::whereIn('id', $policyIds)
+            ->pluck('bronze_policy_name', 'id');
 
         return response()->json(['policy_names' => $policyNames]);
     }
 
     private function getPolicyName($policyId)
     {
-        if (ForsBronze::where('id', $policyId)->exists()) {
-            return ForsBronze::where('id', $policyId)->first()->bronze_policy_name;
-        } elseif (ForsSilver::where('id', $policyId)->exists()) {
-            return ForsSilver::where('id', $policyId)->first()->silver_policy_name;
-        } elseif (ForsGold::where('id', $policyId)->exists()) {
-            return ForsGold::where('id', $policyId)->first()->gold_policy_name;
-        }
-
-        return 'Unknown Policy';
+        $policy = ForsBronze::find($policyId);
+        return $policy ? $policy->bronze_policy_name : 'Unknown Policy';
     }
 
     public function downloadPdf(Request $request)

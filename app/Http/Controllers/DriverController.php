@@ -1559,25 +1559,61 @@ class DriverController extends Controller
     public function driverlogExport()
     {
         $companyId = request('company_id');
-        $userId = request('created'); // Get the user ID if provided
-        $fromDate = request('from_date'); // Get the From Date
-        $toDate = request('to_date');     // Get the To Date
-        $fileName = 'Total Driver API Logs.xlsx'; // Default file name
+        $userId    = request('created');
+        $fromDate  = request('from_date');
+        $toDate    = request('to_date');
+        $fileName  = 'Total Driver API Logs.csv';
 
         if ($companyId) {
             $company = \App\Models\CompanyDetails::find($companyId);
             if ($company && $company->company_status === 'Active') {
-                $companyName = $company->name;
-                $fileName = "({$companyName}) Driver API Logs.xlsx";
+                $fileName = "({$company->name}) Driver API Logs.csv";
             } else {
                 return redirect()->back()->with('error', __('Selected company is not active.'));
             }
         }
 
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\DriverApiLogsExport($companyId, $userId, $fromDate, $toDate), // Pass userId along with companyId
-            $fileName
-        );
+        $query = \App\Models\DriverAPILog::with(['companyDetails', 'creator', 'drivers.depot']);
+
+        if ($companyId) {
+            $query->where('companyName', $companyId);
+        }
+        if ($userId) {
+            $query->where('created', $userId);
+        }
+        if ($fromDate) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        $headers = ['Driver Licence Number', 'Driver Name', 'Depot Name', 'Company Name', 'Last LC Check', 'User'];
+
+        return response()->streamDownload(function () use ($query, $headers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            $query->chunk(500, function ($chunk) use ($handle) {
+                foreach ($chunk as $log) {
+                    if (is_numeric($log->created) && $log->creator) {
+                        $creator = $log->creator->username;
+                    } elseif ($log->created === 'Auto Generator') {
+                        $creator = 'Auto Generator';
+                    } else {
+                        $creator = 'Automation';
+                    }
+                    fputcsv($handle, [
+                        $log->licence_no,
+                        optional($log->drivers)->name ?? 'N/A',
+                        optional(optional($log->drivers)->depot)->name ?? 'N/A',
+                        optional($log->companyDetails)->name ? ucwords(strtolower($log->companyDetails->name)) : '',
+                        $log->last_lc_check,
+                        $creator,
+                    ]);
+                }
+            });
+            fclose($handle);
+        }, $fileName);
     }
 
     public function importFile()
@@ -2704,8 +2740,7 @@ class DriverController extends Controller
         $selectedIds = $request->has('ids') ? explode(',', $request->input('ids')) : [];
 
         if ((\Auth::user()->hasRole('company')) || \Auth::user()->hasRole('PTC manager')) {
-            // Fetch all data from the Driver model for super admin, ensuring company status is Active
-            $data = \App\Models\Driver::with(['types', 'companyDetails', 'group', 'depot', 'driverUser'])
+            $query = \App\Models\Driver::with(['types', 'companyDetails', 'group', 'depot', 'driverUser'])
                 ->whereHas('companyDetails', function ($query) {
                     $query->where('company_status', 'Active');
                 })
@@ -2726,46 +2761,88 @@ class DriverController extends Controller
                 })
                 ->when($selectedTachoCardStatus, function ($query) use ($selectedTachoCardStatus) {
                     return $query->where('tacho_card_status', $selectedTachoCardStatus);
-                })->when(! empty($selectedIds), function ($query) use ($selectedIds) {   // ✅ added for selected checkboxes
+                })->when(! empty($selectedIds), function ($query) use ($selectedIds) {
                     return $query->whereIn('id', $selectedIds);
-                })->get();
+                });
         } else {
-            // Fetch only the drivers associated with the authenticated user's company, ensuring company status is Active
-            $data = \App\Models\Driver::with(['types', 'companyDetails', 'depot', 'group', 'driverUser'])
+            $query = \App\Models\Driver::with(['types', 'companyDetails', 'depot', 'group', 'driverUser'])
                 ->where('companyName', \Auth::user()->companyname)
                 ->whereIn('depot_id', $depotIds)
                 ->whereIn('group_id', $userGroupIds)
-                ->whereHas('companyDetails', function ($query) {
-                    $query->where('company_status', 'Active');
+                ->whereHas('companyDetails', function ($q) {
+                    $q->where('company_status', 'Active');
                 })
-                 ->when(!empty($selectedDepotIds), function ($query) use ($selectedDepotIds) {
-                return $query->whereIn('depot_id',$selectedDepotIds);
-            })
-
-            ->when($selectedGroupId, function ($query) use ($selectedGroupId) {
-                return $query->where('group_id',$selectedGroupId);
+                ->when(! empty($selectedDepotIds), function ($q) use ($selectedDepotIds) {
+                    return $q->whereIn('depot_id', $selectedDepotIds);
                 })
-                ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
-                    return $query->where('companyName', $selectedCompanyId);
+                ->when($selectedGroupId, function ($q) use ($selectedGroupId) {
+                    return $q->where('group_id', $selectedGroupId);
                 })
-                ->when($selectedDriverStatus, function ($query) use ($selectedDriverStatus) {
-                    return $query->where('driver_status', $selectedDriverStatus);
+                ->when($selectedCompanyId, function ($q) use ($selectedCompanyId) {
+                    return $q->where('companyName', $selectedCompanyId);
                 })
-                ->when($selectedCpcStatus, function ($query) use ($selectedCpcStatus) {
-                    return $query->where('cpc_status', $selectedCpcStatus);
+                ->when($selectedDriverStatus, function ($q) use ($selectedDriverStatus) {
+                    return $q->where('driver_status', $selectedDriverStatus);
                 })
-                ->when($selectedTachoCardStatus, function ($query) use ($selectedTachoCardStatus) {
-                    return $query->where('tacho_card_status', $selectedTachoCardStatus);
+                ->when($selectedCpcStatus, function ($q) use ($selectedCpcStatus) {
+                    return $q->where('cpc_status', $selectedCpcStatus);
                 })
-                ->when(! empty($selectedIds), function ($query) use ($selectedIds) {   // ✅ added for selected checkboxes
-                    return $query->whereIn('id', $selectedIds);
-                })->get();
+                ->when($selectedTachoCardStatus, function ($q) use ($selectedTachoCardStatus) {
+                    return $q->where('tacho_card_status', $selectedTachoCardStatus);
+                })
+                ->when(! empty($selectedIds), function ($q) use ($selectedIds) {
+                    return $q->whereIn('id', $selectedIds);
+                });
         }
 
-        // Adjust the export logic as per your requirement
-        $name = 'Driver Data_'.date('d-m-Y');
+        $filename = 'Driver Data_' . date('d-m-Y') . '.csv';
+        $headers = [
+            'Driver Name', 'Operator Company Name', 'Depot Name', 'Driver Group',
+            'Driver Status', 'Consent Form Status', 'Driver Number', 'Post Code',
+            'Contact No', 'Contact Email', 'Driver DOB', 'Driver Address',
+            'Driver Licence No', 'Driver Licence Status', 'Driver Licence Expiry',
+            'CPC Status', 'CPC Valid To', 'Tacho Card No', 'Tacho Card Valid From',
+            'Tacho Card Status', 'Tacho Card Valid To', 'Latest LC Check', 'Next LC Check',
+            'Username', 'Driver Last Login At',
+        ];
 
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DriverDataExport($data), $name.'.xlsx');
+        return response()->streamDownload(function () use ($query, $headers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            $query->chunk(500, function ($chunk) use ($handle) {
+                foreach ($chunk as $d) {
+                    fputcsv($handle, [
+                        ucwords(strtolower($d->name)),
+                        $d->types ? $d->types->name : 'N/A',
+                        $d->depot ? $d->depot->name : 'N/A',
+                        $d->group ? $d->group->name : 'N/A',
+                        $d->driver_status,
+                        $d->consent_form_status,
+                        $d->ni_number,
+                        $d->post_code,
+                        $d->contact_no,
+                        $d->contact_email,
+                        $d->driver_dob,
+                        $d->driver_address,
+                        $d->driver_licence_no,
+                        $d->driver_licence_status,
+                        $d->driver_licence_expiry,
+                        $d->cpc_status,
+                        $d->cpc_validto,
+                        $d->tacho_card_no,
+                        $d->tacho_card_valid_from,
+                        $d->tacho_card_status,
+                        $d->tacho_card_valid_to,
+                        $d->latest_lc_check,
+                        $d->next_lc_check,
+                        $d->driverUser ? $d->driverUser->username : 'N/A',
+                        $d->driverUser && !empty($d->driverUser->last_login_at) && $d->driverUser->last_login_at != '0000-00-00 00:00:00'
+                            ? \Carbon\Carbon::parse($d->driverUser->last_login_at)->format('d/m/Y H:i') : '-',
+                    ]);
+                }
+            });
+            fclose($handle);
+        }, $filename);
     }
 
     public function calculateAge()

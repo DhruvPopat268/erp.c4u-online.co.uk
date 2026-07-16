@@ -440,6 +440,14 @@ if(selectedCompanyId){
             }
         });
     });
+
+    function showExportLoader() {
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
+        }
+    }
 </script>
 
 
@@ -713,7 +721,7 @@ if(selectedCompanyId){
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="exportForm" class="btn btn-success" id="exportButton" disabled>Export</button>
+                    <button type="submit" form="exportForm" class="btn btn-success" id="exportButton" disabled onclick="showExportLoader()">Export</button>
                 </div>
             </div>
         </div>

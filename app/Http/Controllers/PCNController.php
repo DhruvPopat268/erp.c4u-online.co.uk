@@ -233,13 +233,35 @@ public function pcnDataexport(Request $request)
         $pcnQuery->whereDate('notice_date', '<=', $toDate);
     }
 
-    $pcn = $pcnQuery->get();
-
-    if ($pcn->isEmpty()) {
+    if (!$pcnQuery->exists()) {
         return back()->with('error', 'No data found for export.');
     }
 
-    return Excel::download(new PcnExport($pcn), 'PCN.xlsx');
+    return response()->streamDownload(function () use ($pcnQuery) {
+        $handle = fopen('php://output', 'w');
+        fputcsv($handle, ['Company Name', 'Depot Name', 'Registration Number', 'Driver Name', 'Notice Number', 'Notice Date', 'Violation Date', 'Location Of Contravention', 'Issuing Authority', 'Type', 'Issuing Authority Action', 'Fine Amount', 'Deduction Amount', 'Status']);
+        $pcnQuery->chunk(500, function ($chunk) use ($handle) {
+            foreach ($chunk as $pcn) {
+                fputcsv($handle, [
+                    $pcn->types->name ?? 'N/A',
+                    $pcn->depot->name ?? 'N/A',
+                    $pcn->vehicle_registration_number ?? 'N/A',
+                    $pcn->driver_name ?? 'N/A',
+                    $pcn->notice_number ?? 'N/A',
+                    \Carbon\Carbon::parse($pcn->notice_date)->format('d/m/Y'),
+                    \Carbon\Carbon::parse($pcn->violation_date)->format('d/m/Y'),
+                    $pcn->location,
+                    $pcn->issuing_authority,
+                    $pcn->type,
+                    $pcn->action,
+                    $pcn->fine_amount,
+                    $pcn->deduction_amount,
+                    $pcn->status,
+                ]);
+            }
+        });
+        fclose($handle);
+    }, 'PCN.csv', ['Content-Type' => 'text/csv']);
 }
 
 public function getDepots($companyId)

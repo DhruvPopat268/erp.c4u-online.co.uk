@@ -235,10 +235,13 @@
             selectedIds.push(cb.value);
         });
 
-        // Get the button safely
         const btn = document.getElementById('exportBtn');
-        if (btn) {
-            btn.disabled = true;
+        if (btn) btn.disabled = true;
+
+        var loader = document.querySelector('.loader-bg');
+        if (loader) {
+            loader.style.display = 'flex';
+            setTimeout(function() { loader.style.display = 'none'; }, 10000);
         }
 
         let url = "{{ route('vehicleDataexport.export') }}" +
