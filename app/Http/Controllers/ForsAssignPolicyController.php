@@ -938,7 +938,16 @@ public function step2(Request $request)
 
     public function downloadPdf(Request $request)
     {
-        if (\Auth::user()->can('manage assign policy')) {
+        if (!\Auth::user()->can('manage assign policy')) {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+
+        // Block generation without a specific policy selected
+        if (empty($request->policy_id) || $request->policy_id === 'all') {
+            return redirect()->back()->with('error', __('Please select a specific policy to generate PDF.'));
+        }
+
+        set_time_limit(120); // PDF generation needs more than 30s for large datasets
 
             $user = \Auth::user();
 
@@ -964,9 +973,12 @@ public function step2(Request $request)
         $selectedGroupId = $request->input('group_id');
 
         // ✅ Build Query
-            $query = PolicyAssignment::with(['driver', 'company', 'creator'])
+            $query = PolicyAssignment::with([
+                    'driver:id,name',
+                    'company:id,name',
+                ])
                 ->whereHas('company', function ($q) {
-                $q->where('company_status', 'Active');
+                    $q->where('company_status', 'Active');
                 });
 
             if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
@@ -1012,46 +1024,53 @@ public function step2(Request $request)
                 $query->where('policy_version', $request->policy_version);
             }
 
-        // Execute
-            $policyAssignments = $query->get();
+        // Fetch settings + logo BEFORE executing main query
+            $settings = \App\Models\Utility::settings();
+            $company_logo = \App\Models\Utility::getValByName('company_logo');
+            $imagePath = storage_path('/uploads/logo/' . (!empty($company_logo) ? $company_logo : '5-logo-dark.png'));
+            $img = file_exists($imagePath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($imagePath)) : '';
 
-        // ✅ Get company name once
-        $companyName = \App\Models\CompanyDetails::find($companyId)->name ?? 'Default Company';
+        // Get company name
+        $companyName = \App\Models\CompanyDetails::where('id', $companyId)->value('name') ?? 'Default Company';
 
-        // ✅ Map policy data
-        $policyAssignments->each(function ($assignment) use ($companyName) {
+        \Log::info('[PDF] START', ['memory_mb' => round(memory_get_usage(true) / 1048576, 2), 'company_id' => $companyId, 'policy_id' => $request->policy_id]);
 
-                $policyName = $this->getPolicyName($assignment->policy_id);
+        // Execute main query — NO description column (large HTML blobs)
+            $policyAssignments = $query
+                ->select('id', 'driver_id', 'company_id', 'policy_id', 'policy_version', 'status', 'signature', 'updated_at')
+                ->get();
 
-                $policyDescription = str_replace('{companyname}', $companyName, $assignment->description);
+        \Log::info('[PDF] After query', ['memory_mb' => round(memory_get_usage(true) / 1048576, 2), 'row_count' => $policyAssignments->count()]);
 
-                $assignment->policy_name = $policyName;
-                $assignment->description = $policyDescription;
-            });
+        // Resolve all policy names + descriptions in ONE query (only unique policy IDs)
+        $policyIds = $policyAssignments->pluck('policy_id')->unique();
+        $allPolicies = ForsBronze::whereIn('id', $policyIds)
+            ->select('id', 'bronze_policy_name', 'bronze_policy_description')
+            ->get()
+            ->keyBy('id');
 
-        // Group by policy
-            $groupedPolicyAssignments = $policyAssignments->groupBy('policy_id');
+        // Map policy name onto each assignment row (no description needed per-row)
+        $policyAssignments->each(function ($assignment) use ($allPolicies) {
+            $assignment->policy_name = optional($allPolicies->get($assignment->policy_id))->bronze_policy_name ?? 'Unknown Policy';
+        });
 
-            // Get companies and policy names for filtering
-            $companies = CompanyDetails::all();
+        // Build grouped data for policy content section — one entry per unique policy
+        $groupedPolicyAssignments = $policyAssignments->groupBy('policy_id')->map(function ($group) use ($allPolicies, $companyName) {
+            $first = $group->first();
+            $policy = $allPolicies->get($first->policy_id);
+            $first->description = str_replace('{companyname}', $companyName, $policy->bronze_policy_description ?? '');
+            return $group;
+        });
 
-        // Policy IDs
-            $policyIds = $policyAssignments->pluck('policy_id')->unique();
-
-        // Policy Names
-            $policyNames = [];
-        if ($companyId) {
-                foreach ($policyIds as $policyId) {
-                    $policyNames[$policyId] = $this->getPolicyName($policyId);
-                }
-            }
+        \Log::info('[PDF] After grouping', ['memory_mb' => round(memory_get_usage(true) / 1048576, 2)]);
 
         // Policy Versions
             $selectedVersion = $request->input('policy_version');
 
-            $policyVersionsQuery = PolicyAssignment::select('policy_id', 'policy_version', 'reviewed_on', 'next_review_date', 'assigned_by')
+            $policyVersionsQuery = PolicyAssignment::with('creator:id,username')
+                ->select('policy_id', 'policy_version', 'reviewed_on', 'next_review_date', 'assigned_by')
                 ->whereIn('policy_id', $policyIds)
-                ->groupBy('policy_id', 'policy_version');
+                ->groupBy('policy_id', 'policy_version', 'reviewed_on', 'next_review_date', 'assigned_by');
 
             if ($selectedVersion) {
                 $policyVersionsQuery->where('policy_version', '<=', $selectedVersion);
@@ -1059,45 +1078,30 @@ public function step2(Request $request)
 
             $policyVersions = $policyVersionsQuery->get();
 
-        // Logo
-            $settings = \App\Models\Utility::settings();
-            $company_logo = \App\Models\Utility::getValByName('company_logo');
-
-        $imagePath = storage_path('/uploads/logo/' . (!empty($company_logo) ? $company_logo : '5-logo-dark.png'));
-
-            if (file_exists($imagePath)) {
-                $imageData = base64_encode(file_get_contents($imagePath));
-            $img = 'data:image/png;base64,' . $imageData;
-            } else {
-            $img = '';
-            }
+        \Log::info('[PDF] After versions query', ['memory_mb' => round(memory_get_usage(true) / 1048576, 2)]);
 
         // File Name
         $fileName = 'Policy.pdf';
 
             if ($request->has('policy_id') && $request->policy_id && $request->policy_id != 'all') {
-                $policyName = $this->getPolicyName($request->policy_id);
-            $policyVersion = $selectedVersion ?: optional($policyVersions->first())->policy_version;
+                $policyName = optional($allPolicies->get($request->policy_id))->bronze_policy_name ?? 'Policy';
+                $policyVersion = $selectedVersion ?: optional($policyVersions->first())->policy_version;
                 $fileName = "{$policyName}(v{$policyVersion}).pdf";
             }
 
         // PDF Load
             $pdf = Pdf::loadView('fors.assignpolicy.viewpolicy.template', [
                 'groupedPolicyAssignments' => $groupedPolicyAssignments,
-                'companies' => $companies,
-                'policyNames' => $policyNames,
                 'companyName' => $companyName,
                 'policyAssignments' => $policyAssignments,
                 'policyVersions' => $policyVersions,
-            'img' => $img,
-            'settings' => $settings,
+                'img' => $img,
+                'settings' => $settings,
             ]);
 
-            return $pdf->download($fileName);
+        \Log::info('[PDF] After PDF render', ['memory_mb' => round(memory_get_usage(true) / 1048576, 2)]);
 
-        } else {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
+            return $pdf->download($fileName);
     }
     public function show()
     {

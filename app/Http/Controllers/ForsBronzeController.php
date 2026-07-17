@@ -17,13 +17,14 @@ class ForsBronzeController extends Controller
         if (\Auth::user()->can('manage fors')) {
         $loggedInUser = \Auth::user();
         $companyName = $loggedInUser->companyname; 
-         if ($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) {
-            // Fetch all data from the ForsBronze model
-            $bronzePolicies = ForsBronze::with('company')->get();
-         } else {
-                     $bronzePolicies = ForsBronze::with('company')
-                ->where('companyName', $companyName)->get();
+        $query = ForsBronze::with('company:id,name')
+            ->select('id', 'bronze_policy_name', 'companyName');
+
+        if (!$loggedInUser->hasRole('company') && !$loggedInUser->hasRole('PTC manager')) {
+            $query->where('companyName', $companyName);
         }
+
+        $bronzePolicies = $query->get();
 
             // Pass the data to the view
             return view('fors.bronze.index', compact('bronzePolicies'));
@@ -134,108 +135,55 @@ class ForsBronzeController extends Controller
     //     }
     // }
     
-     public function BronzePolicy_descriptionStore($id, Request $request)
+    public function BronzePolicy_descriptionStore($id, Request $request)
     {
-         $user = \Auth::user();
-    $forsBronze = ForsBronze::find($id);
+        $user = \Auth::user();
+        $forsBronze = ForsBronze::find($id);
 
-    if (!$forsBronze) {
-        return response()->json([
-            'is_success' => false,
-            'error' => __('Policy not found.'),
-        ], 404);
-    }
+        if (!$forsBronze) {
+            return response()->json(['is_success' => false, 'error' => __('Policy not found.')], 404);
+        }
 
-    
-        if (\Auth::user()->type == 'company' || \Auth::user()->type == 'PTC manager') {
-            $forsBronze = ForsBronze::find($id);
-
-            // Get the bronze_policy_description from the request
-            $description = $request->bronze_policy_description;
-
-            // Clean up HTML content
-            $description = preg_replace('/<div[^>]*style\s*:\s*page-break[^>]*>/', '', $description);
-            $description = preg_replace('/<p[^>]*style\s*:\s*page-break[^>]*>/', '', $description);
-            $description = preg_replace('/<p\s*style\s*:\s*page-break[^>]*>/', '', $description);
-
-            // Load HTML into DOMDocument for manipulation
-            $dom = new \DOMDocument();
-            libxml_use_internal_errors(true); // Suppress errors
-            $dom->loadHTML(mb_convert_encoding($description, 'HTML-ENTITIES', 'UTF-8'));
-
-            // Create a new DOMXPath instance
-            $xpath = new \DOMXPath($dom);
-
-            // Remove specific <span> tags
-            foreach ($xpath->query('//span[@style="font-size:12.0pt;line-height:107%;font-family:&quot;Times New Roman&quot;,serif;mso-fareast-font-family:&quot;Times New Roman&quot;"]') as $span) {
-                $span->parentNode->removeChild($span);
+        // Permission check for non-admin roles
+        if ($user->type !== 'company' && $user->type !== 'PTC manager') {
+            if ($user->companyname != $forsBronze->companyName) {
+                return response()->json(['is_success' => false, 'error' => __('You are not allowed to edit this company\'s policy.')], 403);
             }
+        }
 
-            // Remove empty elements
-            foreach ($xpath->query('//p[not(node())]') as $emptyP) {
-                $emptyP->parentNode->removeChild($emptyP);
-            }
-            foreach ($xpath->query('//div[not(node())]') as $emptyDiv) {
-                $emptyDiv->parentNode->removeChild($emptyDiv);
-            }
+        $description = $request->bronze_policy_description;
 
-            // Save the cleaned HTML content
-            $forsBronze->bronze_policy_description = $dom->saveHTML();
+        if (empty(trim(strip_tags($description ?? '')))) {
+            $forsBronze->bronze_policy_description = $description ?? '';
             $forsBronze->save();
-
-            return response()->json(
-                [
-                    'is_success' => true,
-                    'success' => __('Policy description successfully saved!'),
-                ], 200
-            );
-        } else {
-        // For other users, check if company matches
-        if ($user->companyname != $forsBronze->companyName) {
-            return response()->json([
-                    'is_success' => false,
-                'error' => __('You are not allowed to edit this company\'s policy.'),
-            ], 403);
-        }
-    }
-
-    // Get the bronze_policy_description from the request
-    $description = $request->bronze_policy_description;
-
-    // Clean up HTML content
-    $description = preg_replace('/<div[^>]*style\s*:\s*page-break[^>]*>/', '', $description);
-    $description = preg_replace('/<p[^>]*style\s*:\s*page-break[^>]*>/', '', $description);
-    $description = preg_replace('/<p\s*style\s*:\s*page-break[^>]*>/', '', $description);
-
-    // Load HTML into DOMDocument for manipulation
-    $dom = new \DOMDocument();
-    libxml_use_internal_errors(true); // Suppress errors
-    $dom->loadHTML(mb_convert_encoding($description, 'HTML-ENTITIES', 'UTF-8'));
-
-    // Create a new DOMXPath instance
-    $xpath = new \DOMXPath($dom);
-
-    // Remove specific <span> tags
-    foreach ($xpath->query('//span[@style="font-size:12.0pt;line-height:107%;font-family:&quot;Times New Roman&quot;,serif;mso-fareast-font-family:&quot;Times New Roman&quot;"]') as $span) {
-        $span->parentNode->removeChild($span);
+            return response()->json(['is_success' => true, 'success' => __('Policy description successfully saved!')], 200);
         }
 
-    // Remove empty elements
-    foreach ($xpath->query('//p[not(node())]') as $emptyP) {
-        $emptyP->parentNode->removeChild($emptyP);
-    }
-    foreach ($xpath->query('//div[not(node())]') as $emptyDiv) {
-        $emptyDiv->parentNode->removeChild($emptyDiv);
-    }
+        // Clean page-break styles
+        $description = preg_replace('/<(div|p)[^>]*style\s*=\s*["\'][^"\'>]*page-break[^"\'>]*["\'][^>]*>/', '', $description);
 
-    // Save the cleaned HTML content
-    $forsBronze->bronze_policy_description = $dom->saveHTML();
-    $forsBronze->save();
+        // Parse and clean with DOMDocument
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(mb_convert_encoding($description, 'HTML-ENTITIES', 'UTF-8'));
+        libxml_clear_errors();
 
-    return response()->json([
-        'is_success' => true,
-        'success' => __('Policy description successfully saved!'),
-    ], 200);
+        $xpath = new \DOMXPath($dom);
+
+        foreach ($xpath->query('//span[@style="font-size:12.0pt;line-height:107%;font-family:&quot;Times New Roman&quot;,serif;mso-fareast-font-family:&quot;Times New Roman&quot;"]') as $span) {
+            $span->parentNode->removeChild($span);
+        }
+        foreach ($xpath->query('//p[not(node())]') as $emptyP) {
+            $emptyP->parentNode->removeChild($emptyP);
+        }
+        foreach ($xpath->query('//div[not(node())]') as $emptyDiv) {
+            $emptyDiv->parentNode->removeChild($emptyDiv);
+        }
+
+        $forsBronze->bronze_policy_description = $dom->saveHTML();
+        $forsBronze->save();
+
+        return response()->json(['is_success' => true, 'success' => __('Policy description successfully saved!')], 200);
     }
 
     public function show($id)
@@ -291,12 +239,9 @@ class ForsBronzeController extends Controller
 
     public function Bronzeassign($id)
     {
-        $bronzePolicy = ForsBronze::findOrFail($id);
-        $drivers = \App\Models\Driver::all(); // Fetch the list of drivers
-
-        // Fetch assigned drivers (assuming there's a relationship defined in the BronzePolicy model)
-        $assignedDrivers = $bronzePolicy->drivers; // Adjust this line based on your actual relationships
-        $assignedDriverIds = $assignedDrivers->pluck('id')->toArray();
+        $bronzePolicy = ForsBronze::select('id', 'bronze_policy_name')->findOrFail($id);
+        $drivers = \App\Models\Driver::select('id', 'name')->get();
+        $assignedDriverIds = $bronzePolicy->drivers()->pluck('drivers.id')->toArray();
 
         return view('fors.bronze.assign', compact('bronzePolicy', 'drivers', 'assignedDriverIds'));
     }

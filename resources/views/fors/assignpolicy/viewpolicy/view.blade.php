@@ -16,9 +16,7 @@
             var policyId = urlParams.get('policy_id');
             var policyVersion = urlParams.get('policy_version');
 
-            if (policyId === 'all') {
-                $('#download_pdf_btn').hide();
-            } else if (urlParams.has('company_id') || urlParams.has('policy_id') || urlParams.has('policy_version')) {
+            if (policyId && policyId !== 'all') {
                 $('#download_pdf_btn').show();
             } else {
                 $('#download_pdf_btn').hide();
@@ -411,10 +409,7 @@
                <div class="row g-2 align-items-end mb-3">
                   @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
                 <div class="col-lg-2 col-md-3 col-sm-6">
-                     <label for="company_id" class="form-label">
-                        {{ __('Company') }}
-                        <!--<span class="text-danger">*</span>-->
-                    </label>
+                     <label for="company_id" class="form-label">{{ __('Company') }}</label>
                      <select id="company_id" name="company_id" class="form-select" >
                         <option value="">{{ __('Select Company') }}</option>
                         @foreach($companies->sortBy('name') as $company)
@@ -424,65 +419,9 @@
                         @endforeach
                      </select>
                   </div>
-                      @endif
+                  @endif
                   <div class="col-lg-2 col-md-3 col-sm-6">
-                        <label for="depot_id">{{__('Filter by Depot')}}</label>
-
-                        <select name="depot_id" id="depot_id" class="form-control">
-
-                            @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
-
-                            <option value="">{{__('Select a Company First')}}</option>
-
-                            @else
-
-                            <option value="">{{__('All Depots')}}</option>
-
-                            @foreach($depots as $depot)
-
-                            <option value="{{ $depot->id }}" {{ request('depot_id') == $depot->id ? 'selected' : '' }}>
-                                {{ strtoupper($depot->name) }}
-                            </option>
-
-                            @endforeach
-
-                            @endif
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="col-lg-2 col-md-3 col-sm-6">
-                        <label for="group_id">{{__('Filter by Group')}}</label>
-
-                        <select name="group_id" id="group_id" class="form-control">
-
-                            @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
-
-                            <option value="">{{__('Select a Company First')}}</option>
-
-                            @else
-
-                            <option value="">{{__('All Groups')}}</option>
-
-                            @foreach($groups as $group)
-
-                            <option value="{{ $group->id }}" {{ request('group_id') == $group->id ? 'selected' : '' }}>
-                                {{ strtoupper($group->name) }}
-                            </option>
-
-                            @endforeach
-
-                            @endif
-
-                        </select>
-
-                    </div>
-                  <div class="col-lg-2 col-md-3 col-sm-6">
-                      <label for="policy_id" class="form-label">{{ __('Policy Name') }}
-                      <!--<span class="text-danger">*</span>-->
-                      </label>
+                      <label for="policy_id" class="form-label">{{ __('Policy Name') }}</label>
                      <select id="policy_id" name="policy_id" class="form-select" >
                         <option value="">{{ __('Select Policy Name') }}</option>
                         <option value="all" {{ request('policy_id') == 'all' ? 'selected' : '' }}>{{ __('Select All Policies') }}</option>
@@ -493,6 +432,36 @@
                         @endforeach
                      </select>
                   </div>
+                  <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label for="depot_id">{{__('Filter by Depot')}}</label>
+                        <select name="depot_id" id="depot_id" class="form-control">
+                            @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
+                            <option value="">{{__('Select a Company First')}}</option>
+                            @else
+                            <option value="">{{__('All Depots')}}</option>
+                            @foreach($depots as $depot)
+                            <option value="{{ $depot->id }}" {{ request('depot_id') == $depot->id ? 'selected' : '' }}>
+                                {{ strtoupper($depot->name) }}
+                            </option>
+                            @endforeach
+                            @endif
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label for="group_id">{{__('Filter by Group')}}</label>
+                        <select name="group_id" id="group_id" class="form-control">
+                            @if(Auth::user()->hasRole('company') || Auth::user()->hasRole('PTC manager'))
+                            <option value="">{{__('Select a Company First')}}</option>
+                            @else
+                            <option value="">{{__('All Groups')}}</option>
+                            @foreach($groups as $group)
+                            <option value="{{ $group->id }}" {{ request('group_id') == $group->id ? 'selected' : '' }}>
+                                {{ strtoupper($group->name) }}
+                            </option>
+                            @endforeach
+                            @endif
+                        </select>
+                    </div>
                   <div class="col-lg-2 col-md-3 col-sm-6">
                      <label for="policy_version" class="form-label">{{ __('Policy Version') }}
                      <!--<span class="text-danger">*</span>-->
