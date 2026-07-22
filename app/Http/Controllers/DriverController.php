@@ -433,7 +433,7 @@ class DriverController extends Controller
             $companyPart = strtolower(substr($companyName, 0, 3));
             [$day, $month] = explode('/', $formattedDriverDob);
             // Create the username
-            $username = $lastNamePart.$companyPart.$day.$month;
+            $username = $this->generateUniqueUsername($lastNamePart, $companyPart, $day, $month, $contactNo);
             // Generate the password
             $firstNamePart = substr($firstName, 0, 4); // First 4 characters of the name
             $lastTwoOfLicence = substr($drivingLicenceNumber, -2); // Last 2 characters of the licence number
@@ -1721,13 +1721,36 @@ class DriverController extends Controller
             $username = null;
             if (! empty($dob)) {
                 try {
-                    $formattedDriverDob = Carbon::parse($dob)->format('d/m/Y');
+                    $parsedDob = null;
+
+                    // Handle Excel numeric date serial
+                    if (is_numeric($dob)) {
+                        $parsedDob = Carbon::instance(
+                            \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($dob)
+                        );
+                    } else {
+                        // Try dd/mm/yyyy, d/m/yyyy, d/m/yy variants
+                        foreach (['d/m/Y', 'j/n/Y', 'j/n/y'] as $format) {
+                            try {
+                                $parsedDob = Carbon::createFromFormat($format, trim($dob));
+                                break;
+                            } catch (\Exception $e) {
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (! $parsedDob) {
+                        throw new \Exception('Unrecognised DOB format');
+                    }
+
+                    $formattedDriverDob = $parsedDob->format('d/m/Y');
                     [$day, $month] = explode('/', $formattedDriverDob);
 
                     // Generate username if DOB is available
                     $lastNamePart = strtolower(substr($lastName, 0, 3));
                     $companyPart = strtolower(substr($companyName, 0, 3));
-                    $username = $lastNamePart.$companyPart.$day.$month;
+                    $username = $this->generateUniqueUsername($lastNamePart, $companyPart, $day, $month, $contactNo);
                 } catch (\Exception $e) {
                     $errorArray[] = [
                         'error' => 'Invalid DOB format for "'.$fullName.'"',
@@ -1821,6 +1844,28 @@ class DriverController extends Controller
         }
 
         return redirect()->route('driver.index')->with($data['status'], $data['msg']);
+    }
+
+    private function generateUniqueUsername($lastNamePart, $companyPart, $day, $month, $contactNo)
+    {
+        $base = $lastNamePart.$companyPart.$day.$month;
+
+        if (!\App\Models\DriverUser::where('username', $base)->exists()) {
+            return $base;
+        }
+
+        // Fallback: append 3 random digits + last 2 digits of contact number
+        $lastTwoContact = substr(preg_replace('/\D/', '', $contactNo ?? ''), -2);
+        if (strlen($lastTwoContact) < 2) {
+            $lastTwoContact = str_pad($lastTwoContact, 2, '0', STR_PAD_LEFT);
+        }
+
+        do {
+            $randomDigits = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $username = $base.$randomDigits.$lastTwoContact;
+        } while (\App\Models\DriverUser::where('username', $username)->exists());
+
+        return $username;
     }
 
     private function parseDate($date)
