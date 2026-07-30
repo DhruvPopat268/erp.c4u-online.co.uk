@@ -42,6 +42,23 @@ public function index(Request $request)
                 $vehicleGroupIds = [$loggedInUser->vehicle_group_id];
             }
 
+        // --- DEBUG LOG ---
+        \Log::info('PCN Index - User: ' . $loggedInUser->id . ' | Role: ' . implode(',', $loggedInUser->getRoleNames()->toArray()));
+        \Log::info('PCN Index - companyName: ' . $companyName);
+        \Log::info('PCN Index - depotIds raw: ' . $loggedInUser->depot_id);
+        \Log::info('PCN Index - depotIds parsed: ' . json_encode($depotIds));
+        \Log::info('PCN Index - vehicleGroupIds raw: ' . $loggedInUser->vehicle_group_id);
+        \Log::info('PCN Index - vehicleGroupIds parsed: ' . json_encode($vehicleGroupIds));
+
+        // Sample a few PCNs for this company+depot to check vehicle_id values
+        $samplePcns = Pcn::where('company_id', $companyName)->whereIn('depot_id', $depotIds)->limit(5)->get(['id','vehicle_id','depot_id','company_id']);
+        \Log::info('PCN Index - Sample PCNs (company+depot match): ' . $samplePcns->toJson());
+
+        // Check what vehicle_details records exist for this company
+        $sampleVehicleDetails = \App\Models\vehicleDetails::where('companyName', $companyName)->whereIn('depot_id', $depotIds)->limit(5)->get(['id','registrationNumber','group_id','depot_id','vehicle_id']);
+        \Log::info('PCN Index - Sample vehicleDetails (company+depot): ' . $sampleVehicleDetails->toJson());
+        // --- END DEBUG LOG ---
+
         $pcn = null;
         $depots = [];
         if ($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager')) {
@@ -73,18 +90,14 @@ public function index(Request $request)
         } else {
             $pcn = Pcn::with(['types'])
             ->whereHas('types', function ($q) {
-                $q->where('company_status', 'Active'); // Only include assignments where the company is active
+                $q->where('company_status', 'Active');
             })
-                    ->where('company_id', $companyName)->whereIn('depot_id', $depotIds)
-                ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
-                    return $query->where('company_id', $selectedCompanyId);
-                })
-                    ->whereHas('vehicle.vehicleDetail', function ($q) use ($vehicleGroupIds, $selectedGroupId) {
-                        $q->whereIn('group_id', $vehicleGroupIds);
-
-                        if ($selectedGroupId) {
+                    ->where('company_id', $companyName)
+                    ->whereIn('depot_id', $depotIds)
+                    ->when($selectedGroupId, function ($query) use ($selectedGroupId) {
+                        $query->whereHas('vehicleDetail', function ($q) use ($selectedGroupId) {
                             $q->where('group_id', $selectedGroupId);
-                        }
+                        });
                     })
                 ->when($selectedIssuingAuthority, function ($query) use ($selectedIssuingAuthority) {
                     return $query->where('issuing_authority', $selectedIssuingAuthority);
@@ -99,6 +112,10 @@ public function index(Request $request)
                     return $query->whereDate('notice_date', '<=', $toDate);
                     })->when($status, fn ($q) => $q->where('status', $status))
                 ->orderBy('id', 'desc')->get();
+
+            \Log::info('PCN Index - Normal user query returned: ' . $pcn->count() . ' records');
+            // Log the first few PCN vehicle_ids to check what is stored
+            \Log::info('PCN Index - PCN vehicle_ids in result: ' . $pcn->pluck('vehicle_id')->toJson());
         }
 
         // Calculate totals
@@ -196,12 +213,10 @@ public function pcnDataexport(Request $request)
     if (!($loggedInUser->hasRole('company') || $loggedInUser->hasRole('PTC manager'))) {
         $pcnQuery->where('company_id', $loggedInUser->companyname)
                  ->whereIn('depot_id', $depotIds)
-                 ->whereHas('vehicle.vehicleDetail', function ($q) use ($vehicleGroupIds, $selectedGroupId) {
-                     $q->whereIn('group_id', $vehicleGroupIds);
-
-                     if ($selectedGroupId) {
+                 ->when($selectedGroupId, function ($query) use ($selectedGroupId) {
+                     $query->whereHas('vehicleDetail', function ($q) use ($selectedGroupId) {
                          $q->where('group_id', $selectedGroupId);
-                     }
+                     });
                  });
     } else {
         // Company role group filter
@@ -591,14 +606,20 @@ public function show($id)
 
         // Check if the user is an admin or PTC manager
         if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
-            // Fetch the record only if it belongs to the user's company
             $pcn = $query->findOrFail($id);
         } else {
-            // Fetch only if the specific record belongs to the logged-in user's company
-            $pcn = $query->whereHas('types', function ($q) use ($user) {
-                $q->where('company_id', $user->companyname); // Ensure correct column name
-            })->findOrFail($id);
+            $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
+            if (!is_array($depotIds)) {
+                $depotIds = [$user->depot_id];
+            }
+            $vehicleGroupIds = is_array($user->vehicle_group_id) ? $user->vehicle_group_id : json_decode($user->vehicle_group_id, true);
+            if (!is_array($vehicleGroupIds)) {
+                $vehicleGroupIds = [$user->vehicle_group_id];
+            }
 
+            $pcn = $query->where('company_id', $user->companyname)
+                ->whereIn('depot_id', $depotIds)
+                ->findOrFail($id);
         }
 
         // Pass data to the view

@@ -2203,11 +2203,6 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                     ->whereHas('types', function ($query) {
                         $query->where('company_status', 'Active');
                     })
-                    ->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                        $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                            $q->whereIn('group_id', $userVehicleGroups);
-                        });
-                    })
                     ->count();
 
                 $pcnCountsByMonth = Pcn::selectRaw('MONTH(created_at) as month, COUNT(*) as total')->whereIn('depot_id', $userDepots)
@@ -2217,12 +2212,6 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                     ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
                         return $query->where('company_id', $selectedCompanyId);
                     })
-                    ->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                        $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                            $q->whereIn('group_id', $userVehicleGroups);
-                        });
-                    })
-
                     ->whereYear('created_at', now()->year)
                     ->groupBy(\DB::raw('MONTH(created_at)'))
                     ->pluck('total', 'month')
@@ -2342,11 +2331,6 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                     ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
                         return $query->where('company_id', $selectedCompanyId);
                     })
-                    ->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                        $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                            $q->whereIn('group_id', $userVehicleGroups);
-                        });
-                    })
                     ->whereYear('created_at', now()->year)
                     ->where('status', 'Closed')
                     ->groupBy(\DB::raw('MONTH(created_at)'))
@@ -2366,11 +2350,6 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                 $outstandingPcnCountsByMonth = Pcn::selectRaw('MONTH(created_at) as month, COUNT(*) as outstanding')->whereIn('depot_id', $userDepots)
                     ->whereHas('types', function ($query) {
                         $query->where('company_status', 'Active');
-                    })
-                    ->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                        $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                            $q->whereIn('group_id', $userVehicleGroups);
-                        });
                     })
                     ->when($selectedCompanyId, function ($query) use ($selectedCompanyId) {
                         return $query->where('company_id', $selectedCompanyId);
@@ -2565,20 +2544,12 @@ $crm_data['driver_api_log_count'] = \App\Models\DriverAPILog::whereIn('driver_id
                     $query->where('company_status', 'Inactive');
                 })->count();
 
-                $crm_data['pcn_status'] = Pcn::where('status', 'Closed')->whereIn('depot_id', $userDepots)->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                    $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                        $q->whereIn('group_id', $userVehicleGroups);
-                    });
-                })->whereHas('types', function ($query) {
-                    $query->where('company_status', 'Active');
-                })->count();
+                $crm_data['pcn_status'] = Pcn::where('status', 'Closed')->whereIn('depot_id', $userDepots)
+                    ->whereHas('types', function ($query) {
+                        $query->where('company_status', 'Active');
+                    })->count();
 
                 $issuingAuthorityCounts = Pcn::select('issuing_authority', \DB::raw('COUNT(*) as total'))->whereIn('depot_id', $userDepots)
-                    ->when(! empty($userVehicleGroups), function ($query) use ($userVehicleGroups) {
-                        $query->whereHas('vehicle.vehicleDetail', function ($q) use ($userVehicleGroups) {
-                            $q->whereIn('group_id', $userVehicleGroups);
-                        });
-                    })
                     ->whereHas('types', function ($query) {
                         $query->where('company_status', 'Active');
                     })

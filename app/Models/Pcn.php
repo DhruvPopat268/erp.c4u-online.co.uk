@@ -45,8 +45,13 @@ class Pcn extends Model
     }
     
        public function vehicle()
-{
-    return $this->belongsTo(Vehicles::class, 'vehicle_id');
-}
+    {
+        return $this->belongsTo(Vehicles::class, 'vehicle_id');
+    }
+
+    public function vehicleDetail()
+    {
+        return $this->belongsTo(\App\Models\vehicleDetails::class, 'vehicle_id');
+    }
 
 }

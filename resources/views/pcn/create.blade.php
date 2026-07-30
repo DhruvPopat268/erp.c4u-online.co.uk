@@ -48,9 +48,11 @@
 
                         <div class="form-group col-md-6">
                             <label for="vehicle_registration_number">Vehicle Registration Number</label>
-                            <input type="text" id="vehicle_registration_number" name="vehicle_registration_number" class="form-control" placeholder="Enter Vehicle Registration Number" required>
+                            <select id="vehicle_registration_number_select" class="form-control" required>
+                                <option value="">{{ __('Select Company & Depot First') }}</option>
+                            </select>
+                            <input type="hidden" name="vehicle_registration_number" id="vehicle_registration_number">
                             <input type="hidden" name="vehicle_id" id="vehicle_id">
-
                         </div>
                         <div class="form-group col-md-6">
                             <label for="driver_name">{{ __('Driver Name') }}</label>
@@ -362,35 +364,68 @@
         }
 
 
+        function loadVehicles() {
+            var companyId = $('#company_id').val();
+            var depotId = $('#depot_id').val();
+
+            if (!companyId || !depotId) {
+                $('#vehicle_registration_number_select').html('<option value="">{{ __('Select Company & Depot First') }}</option>');
+                $('#vehicle_registration_number').val('');
+                $('#vehicle_id').val('');
+                return;
+            }
+
+            $('#vehicle_registration_number_select').html('<option value="">Loading...</option>').prop('disabled', true);
+
+            $.ajax({
+                url: '{{ route('get.vehicles.by.depot.group') }}',
+                method: 'GET',
+                data: { company_id: companyId, depot_id: depotId },
+                success: function(vehicles) {
+                    var options = '<option value="">{{ __('Select Registration') }}</option>';
+                    vehicles.forEach(function(v) {
+                        var label = v.registrationNumber;
+                        if (v.vehicle_nick_name) label += ' (' + v.vehicle_nick_name + ')';
+                        options += '<option value="' + v.id + '" data-reg="' + v.registrationNumber + '">' + label + '</option>';
+                    });
+                    $('#vehicle_registration_number_select').html(options).prop('disabled', false);
+                },
+                error: function() {
+                    $('#vehicle_registration_number_select').html('<option value="">Failed to load vehicles</option>').prop('disabled', false);
+                }
+            });
+        }
+
         $(document).ready(function() {
-            $('#vehicle_registration_number').on('blur', function() {
-                var registrationNumber = $(this).val();
+            // Sync hidden inputs when a vehicle is selected from the dropdown
+            $('#vehicle_registration_number_select').on('change', function() {
+                var selected = $(this).find('option:selected');
+                $('#vehicle_registration_number').val(selected.data('reg') || '');
+                $('#vehicle_id').val($(this).val() || '');
+
+                // Trigger walkaround lookup if violation date is also set
+                var registrationNumber = selected.data('reg');
                 var violationDate = $('#violation_date').val();
-                var companyId = $('#company_id').val(); // Get the selected company ID
+                var companyId = $('#company_id').val();
+                var depotId = $('#depot_id').val();
 
                 if (registrationNumber && violationDate && companyId) {
                     var formattedViolationDate = moment(violationDate).format('DD/MM/YYYY');
-
                     $.ajax({
                         url: '/fetch-vehicle-data',
                         method: 'GET',
                         data: {
                             registration_number: registrationNumber,
                             violation_date: formattedViolationDate,
-                            company_id: companyId, // Include company_id in the request
-                            depot_id: $('#depot_id').val()
+                            company_id: companyId,
+                            depot_id: depotId
                         },
                         success: function(response) {
                             if (response.success) {
                                 var vehicle = response.vehicle;
                                 var workAroundDataList = response.workAroundData;
-
-                                // Set the vehicle ID to the hidden input
-                                $('#vehicle_id').val(vehicle.id); // Assuming vehicle has an 'id' field
-
                                 $('#vehicle-registration').text(vehicle.registrations);
                                 $('#workaround-data-list').empty();
-
                                 workAroundDataList.forEach(function(workAroundData) {
                                     var dataHtml = `
                                         <hr>
@@ -404,24 +439,15 @@
                                     `;
                                     $('#workaround-data-list').append(dataHtml);
                                 });
-
                                 $('#vehicleModal').modal('show');
-
                                 $(document).on('click', '.select-driver-name', function(e) {
                                     e.preventDefault();
                                     $('#driver_name').val($(this).data('driver-name'));
                                     $('#vehicleModal').modal('hide');
                                 });
-                            } else {
-                                alert(response.message || 'Vehicle not found!');
                             }
-                        },
-                        error: function() {
-                            alert('An error occurred while fetching the vehicle data.');
                         }
                     });
-                } else {
-                    alert('Please select a company, enter a vehicle registration number, and violation date.');
                 }
             });
         });
@@ -531,13 +557,14 @@
     <script>
     $('#company_id').on('change', function () {
         let companyId = $(this).val();
+        $('#vehicle_registration_number_select').html('<option value="">{{ __('Select Company & Depot First') }}</option>');
+        $('#vehicle_registration_number').val('');
+        $('#vehicle_id').val('');
 
         $.ajax({
             url: '{{ route("get.depots.by.company") }}',
             type: 'GET',
-            data: {
-                company_id: companyId
-            },
+            data: { company_id: companyId },
             success: function (data) {
                 let options = '<option value="">Select Depot</option>';
                 data.forEach(function (depot) {
@@ -550,6 +577,10 @@
                 $('#depot_id').html('<option value="">Select Depot</option>');
             }
         });
+    });
+
+    $('#depot_id').on('change', function () {
+        loadVehicles();
     });
 </script>
 
