@@ -369,7 +369,7 @@ if (! is_array($vehicleGroupIds)) {
                 'os_depth_5' => 'nullable|numeric',
                 'os_depth_6' => 'nullable|numeric',
                 'files' => 'nullable|array',
-                'files.*' => 'file|max:5000',
+                'files.*' => 'file|max:20480',
                 'comment' => 'nullable|string',
                 'parts' => 'nullable|numeric',
                 'labour' => 'nullable|numeric',
@@ -548,9 +548,9 @@ if (! is_array($vehicleGroupIds)) {
 
             return redirect()->route('fleet.index')->with('success', 'Operation completed successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->with('error', __('Please valid Tyre Depth value'));
+            return redirect()->back()->with('error', implode(' | ', $e->validator->errors()->all()));
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'An unexpected error occurred.']);
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
@@ -561,7 +561,7 @@ if (! is_array($vehicleGroupIds)) {
             'comment' => 'nullable|string',
             'odometer_reading' => 'nullable|numeric',
             'total_cost' => 'nullable|numeric|min:0',
-            'files.*' => 'nullable|file|mimes:jpeg,png,pdf,doc,docx,txt,zip|max:5000', // Add file validation
+            'files.*' => 'nullable|file|mimes:jpeg,png,pdf,doc,docx,txt,zip|max:20480', // Add file validation
         ]);
 
         // Find the event by its ID
