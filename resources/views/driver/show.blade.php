@@ -906,6 +906,7 @@ $attachments=\App\Models\Utility::get_file('contract_attechment');
                                     <th>{{ __('Penalty Points') }}</th>
                                     <th>{{ __('Offence Legal Literal') }}</th>
                                     <th>{{ __('Offence Date') }}</th>
+                                    <th>{{ __('Penalty Points Expiry Date') }}</th>
                                     <th>{{ __('Conviction Date') }}</th>
                                 </tr>
                             </thead>
@@ -918,15 +919,14 @@ $attachments=\App\Models\Utility::get_file('contract_attechment');
                                             <td>{{ $item['penaltyPoints'] ?? ' ' }}</td>
                                             <td>{{ $item['offenceLegalLiteral'] ?? ' ' }}</td>
                                             <td>{{ isset($item['offenceDate']) ? \Carbon\Carbon::parse($item['offenceDate'])->format('d/m/Y') : ' ' }}</td>
-<td>{{ isset($item['convictionDate']) ? \Carbon\Carbon::parse($item['convictionDate'])->format('d/m/Y') : ' ' }}</td>
-
-
+                                            <td>{{ isset($item['penaltyPointsExpiryDate']) ? \Carbon\Carbon::parse($item['penaltyPointsExpiryDate'])->format('d/m/Y') : ' ' }}</td>
+                                            <td>{{ isset($item['convictionDate']) ? \Carbon\Carbon::parse($item['convictionDate'])->format('d/m/Y') : ' ' }}</td>
                                         </tr>
                                     @endforeach
                                 @else
                                     <!-- Display a message if no endorsements are available -->
                                     <tr>
-                                        <td colspan="5" class="text-center">No endorsements available</td>
+                                        <td colspan="6" class="text-center">No endorsements available</td>
                                     </tr>
                                 @endif
                             </tbody>

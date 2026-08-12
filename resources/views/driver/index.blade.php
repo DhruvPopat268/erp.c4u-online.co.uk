@@ -810,10 +810,16 @@ session()->forget('errorArray');
 
                             <td class="text-center">
                                 @php
-                                $endorsements = json_decode($contract->endorsements, true); // Decode the JSON data
-                                $penaltyPoints = $endorsements[0]['penaltyPoints'] ?? null; // Access the penaltyPoints value
+                                $endorsements = json_decode($contract->endorsements, true) ?? []; // Decode the JSON data
+                                $totalPenaltyPoints = 0;
+                                // Sum all penalty points across all endorsements
+                                foreach ($endorsements as $endorsement) {
+                                    if (isset($endorsement['penaltyPoints'])) {
+                                        $totalPenaltyPoints += (int) $endorsement['penaltyPoints'];
+                                    }
+                                }
                                 @endphp
-                                {{ $penaltyPoints ?? 0 }}
+                                {{ $totalPenaltyPoints }}
                             </td>
                             <td>
                                 @if(

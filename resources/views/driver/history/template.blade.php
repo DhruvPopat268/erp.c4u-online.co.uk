@@ -333,6 +333,7 @@
                                              <th>{{ __('Penalty Points') }}</th>
                                              <th>{{ __('Offence Legal Literal') }}</th>
                                              <th>{{ __('Offence Date') }}</th>
+                                             <th>{{ __('Penalty Points Expiry Date') }}</th>
                                              <th>{{ __('Conviction Date') }}</th>
                                           </tr>
                                        </thead>
@@ -344,13 +345,14 @@
                                              <td><center> {{ $item['penaltyPoints'] ?? ' ' }}</center></td>
                                              <td>{{ $item['offenceLegalLiteral'] ?? ' ' }}</td>
                                              <td><center>{{ isset($item['offenceDate']) ? \Carbon\Carbon::parse($item['offenceDate'])->format('d/m/Y') : ' ' }}</center></td>
+                                             <td><center>{{ isset($item['penaltyPointsExpiryDate']) ? \Carbon\Carbon::parse($item['penaltyPointsExpiryDate'])->format('d/m/Y') : ' ' }}</center></td>
                                              <td><center>{{ isset($item['convictionDate']) ? \Carbon\Carbon::parse($item['convictionDate'])->format('d/m/Y') : ' ' }}</center></td>
                                           </tr>
                                           @endforeach
                                           @else
                                           <!-- Display a message if no endorsements are available -->
                                           <tr>
-                                             <td colspan="5" class="text-center">No endorsements available</td>
+                                             <td colspan="6" class="text-center">No endorsements available</td>
                                           </tr>
                                           @endif
                                        </tbody>

@@ -1973,28 +1973,27 @@ class DriverController extends Controller
         }
 
         // Decode the JSON data
-        $endorsements = json_decode($driver->endorsements, true);
+        $endorsements = $driver->endorsements ? json_decode($driver->endorsements, true) : [];
 
         // Initialize variables
-        $firstPenaltyPoints = '0';
+        $firstPenaltyPoints = 0;
         $offenceCodes = [];
 
         // Loop through the endorsements
         foreach ($endorsements as $endorsement) {
-            // Check for penaltyPoints and set the first value
-            if (isset($endorsement['penaltyPoints']) && $firstPenaltyPoints === '0') {
-                $firstPenaltyPoints = $endorsement['penaltyPoints'];
+            // Sum all penalty points across all endorsements
+            if (isset($endorsement['penaltyPoints'])) {
+                $firstPenaltyPoints += (int) $endorsement['penaltyPoints'];
             }
 
-            // Collect offenceCodes
+            // Collect all offenceCodes (not just unique)
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
             }
         }
-        $endorsements = $driver->endorsements ? json_decode($driver->endorsements, true) : [];
 
-        // Count unique offenceCodes
-        $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+        // Count all offenceCodes (including duplicates)
+        $uniqueOffenceCodeCount = count($offenceCodes);
 
         $view = view('driver.driverinfotemplate', compact('driver', 'img', 'settings', 'firstPenaltyPoints', 'uniqueOffenceCodeCount', 'endorsements'))->render();
 
@@ -2211,25 +2210,25 @@ class DriverController extends Controller
         $endorsements = json_decode($driver->endorsements, true) ?? [];
 
         // Initialize variables
-        $firstPenaltyPoints = '0';
+        $firstPenaltyPoints = 0;
         $offenceCodes = [];
 
         // Loop through the endorsements
         foreach ($endorsements as $endorsement) {
-            // Check for penaltyPoints and set the first value
-            if (isset($endorsement['penaltyPoints']) && $firstPenaltyPoints === '0') {
-                $firstPenaltyPoints = $endorsement['penaltyPoints'];
+            // Sum all penalty points across all endorsements
+            if (isset($endorsement['penaltyPoints'])) {
+                $firstPenaltyPoints += (int) $endorsement['penaltyPoints'];
             }
 
-            // Collect offenceCodes
+            // Collect all offenceCodes (not just unique)
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
             }
         }
         // $endorsements = $driver->endorsements ? json_decode($driver->endorsements, true) : [];
 
-        // Count unique offenceCodes
-        $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+        // Count all offenceCodes (including duplicates)
+        $uniqueOffenceCodeCount = count($offenceCodes);
 
         return view('driver.show', compact('driver', 'firstPenaltyPoints', 'uniqueOffenceCodeCount', 'endorsements'));
     }
@@ -3305,27 +3304,27 @@ class DriverController extends Controller
         }
 
         // Decode the JSON data
-        $endorsements = json_decode($driver->endorsements, true);
+        $endorsements = json_decode($driver->endorsements, true) ?? [];
 
         // Initialize variables
-        $firstPenaltyPoints = '0';
+        $firstPenaltyPoints = 0;
         $offenceCodes = [];
 
         // Loop through the endorsements
         foreach ($endorsements as $endorsement) {
-            // Check for penaltyPoints and set the first value
-            if (isset($endorsement['penaltyPoints']) && $firstPenaltyPoints === '0') {
-                $firstPenaltyPoints = $endorsement['penaltyPoints'];
+            // Sum all penalty points across all endorsements
+            if (isset($endorsement['penaltyPoints'])) {
+                $firstPenaltyPoints += (int) $endorsement['penaltyPoints'];
             }
 
-            // Collect offenceCodes
+            // Collect all offenceCodes (not just unique)
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
             }
         }
 
-        // Count unique offenceCodes
-        $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+        // Count all offenceCodes (including duplicates)
+        $uniqueOffenceCodeCount = count($offenceCodes);
 
         return view('driver.history.show', compact('driver', 'firstPenaltyPoints', 'uniqueOffenceCodeCount', 'endorsements'));
     }
@@ -3360,28 +3359,27 @@ class DriverController extends Controller
         }
 
         // Decode the JSON data
-        $endorsements = json_decode($driver->endorsements, true);
+        $endorsements = $driver->endorsements ? json_decode($driver->endorsements, true) : [];
 
         // Initialize variables
-        $firstPenaltyPoints = '0';
+        $firstPenaltyPoints = 0;
         $offenceCodes = [];
 
         // Loop through the endorsements
         foreach ($endorsements as $endorsement) {
-            // Check for penaltyPoints and set the first value
-            if (isset($endorsement['penaltyPoints']) && $firstPenaltyPoints === '0') {
-                $firstPenaltyPoints = $endorsement['penaltyPoints'];
+            // Sum all penalty points across all endorsements
+            if (isset($endorsement['penaltyPoints'])) {
+                $firstPenaltyPoints += (int) $endorsement['penaltyPoints'];
             }
 
-            // Collect offenceCodes
+            // Collect all offenceCodes (not just unique)
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
             }
         }
-        $endorsements = $driver->endorsements ? json_decode($driver->endorsements, true) : [];
 
-        // Count unique offenceCodes
-        $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+        // Count all offenceCodes (including duplicates)
+        $uniqueOffenceCodeCount = count($offenceCodes);
 
         $view = view('driver.history.template', compact('driver', 'img', 'settings', 'firstPenaltyPoints', 'uniqueOffenceCodeCount', 'endorsements'))->render();
 
