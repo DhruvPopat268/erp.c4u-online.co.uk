@@ -574,6 +574,8 @@ public function step2(Request $request)
     public function viewAssignPolicyindex(Request $request)
     {
         $user = \Auth::user();
+
+
         $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
         if (! is_array($depotIds)) {
             $depotIds = [$user->depot_id];
@@ -594,48 +596,41 @@ public function step2(Request $request)
             $query = PolicyAssignment::with([
                     'driver:id,name,depot_id,group_id',
                     'company:id,name',
-                ])
-                ->whereHas('company', function ($q) {
-                    $q->where('company_status', 'Active');
-                });
+                    'creator:id,username',
+                ]);
 
             // Determine the company ID for filtering
             if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
-                // For roles that should see all companies
                 if ($request->has('company_id') && $request->company_id) {
                     $query->where('company_id', $request->company_id);
                 }
 
-                $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
-
-                    if (! empty($selectedDepotId)) {
-                        $q->where('depot_id', $selectedDepotId);
-                    }
-
-                    if (!empty($selectedGroupId)) {
-        $q->where('group_id', $selectedGroupId); // ✅ ADD THIS
-    }
-                });
-
-            } else {
-                // For other roles, apply filtering based on the user's associated company
-                $query->where('company_id', $user->companyname)
-                    ->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
-
-                        // Role based restriction
-                        $q->whereIn('depot_id', $depotIds)
-                            ->whereIn('group_id', $driverGroupIds);
-
-                        // Depot filter
+                if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                    $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
                         if (! empty($selectedDepotId)) {
                             $q->where('depot_id', $selectedDepotId);
                         }
-
-                        // Driver filter
-                        if (!empty($selectedGroupId)) {
-            $q->where('group_id', $selectedGroupId); // ✅ ADD THIS
-        }
+                        if (! empty($selectedGroupId)) {
+                            $q->where('group_id', $selectedGroupId);
+                        }
                     });
+                }
+
+            } else {
+                $query->where('company_id', $user->companyname);
+
+                if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                    $query->whereHas('driver', function ($dq) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
+                        $dq->whereIn('depot_id', $depotIds)
+                            ->whereIn('group_id', $driverGroupIds);
+                        if (! empty($selectedDepotId)) {
+                            $dq->where('depot_id', $selectedDepotId);
+                        }
+                        if (! empty($selectedGroupId)) {
+                            $dq->where('group_id', $selectedGroupId);
+                        }
+                    });
+                }
             }
 
             if ($request->has('policy_id') && $request->policy_id && $request->policy_id != 'all') {
@@ -646,9 +641,17 @@ public function step2(Request $request)
                 $query->where('policy_version', $request->policy_version);
             }
 
-            // Add status filter
             if ($request->has('status') && $request->status != 'all') {
                 $query->where('status', $request->status);
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('driver', fn($dq) => $dq->where('name', 'like', "%{$search}%"))
+                      ->orWhereHas('company', fn($cq) => $cq->where('name', 'like', "%{$search}%"))
+                      ->orWhere('status', 'like', "%{$search}%");
+                });
             }
 
             $perPage = $request->input('per_page', 25);
@@ -677,30 +680,23 @@ public function step2(Request $request)
 
             if ($request->has('company_id') && $request->company_id) {
                 $policyIds = PolicyAssignment::where('company_id', $request->company_id)
-                    ->pluck('policy_id')
-                    ->unique();
+                    ->distinct()->pluck('policy_id');
 
-                // Preload all policy names for the dropdown in ONE query
                 $dropdownPolicies = ForsBronze::whereIn('id', $policyIds)->pluck('bronze_policy_name', 'id');
                 foreach ($policyIds as $policyId) {
                     $policyNames[$policyId] = $dropdownPolicies->get($policyId, 'Unknown Policy');
                 }
 
-                // Fetch unique policy versions and sort them as version numbers
-                $versionQuery = PolicyAssignment::where('company_id', $request->company_id);
+                $versionQuery = PolicyAssignment::where('company_id', $request->company_id)
+                    ->select('policy_version');
 
                 if ($request->has('policy_id') && $request->policy_id && $request->policy_id != 'all') {
                     $versionQuery->where('policy_id', $request->policy_id);
                 }
 
-                $policyVersions = $versionQuery->pluck('policy_version')
-                    ->unique()
-                    ->sort(function ($a, $b) {
-                        return version_compare($a, $b);
-                    })
-                    ->mapWithKeys(function ($version) {
-                        return [$version => $version];
-                    });
+                $policyVersions = $versionQuery->distinct()->pluck('policy_version')
+                    ->sort(fn($a, $b) => version_compare($a, $b))
+                    ->mapWithKeys(fn($v) => [$v => $v]);
             }
 
             // Hardcoded statuses — avoids full table scan on every request
@@ -753,10 +749,7 @@ public function step2(Request $request)
                 'company:id,name',
                 'creator:id,username',
             ])
-            ->select('id', 'driver_id', 'company_id', 'assigned_by', 'policy_id', 'policy_version', 'status', 'duration', 'reviewed_on', 'comment', 'updated_at')
-            ->whereHas('company', function ($q) {
-                $q->where('company_status', 'Active');
-            });
+            ->select('id', 'driver_id', 'company_id', 'assigned_by', 'policy_id', 'policy_version', 'status', 'duration', 'reviewed_on', 'comment', 'updated_at');
 
         // Role based company filter
         if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
@@ -764,32 +757,31 @@ public function step2(Request $request)
                 $query->where('company_id', $request->company_id);
             }
 
-              $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
-
-        if (!empty($selectedDepotId)) {
-            $q->where('depot_id', $selectedDepotId);
-        }
-
-        if (!empty($selectedGroupId)) {
-            $q->where('group_id', $selectedGroupId);
-        }
-    });
-
+            if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
+                    if (! empty($selectedDepotId)) {
+                        $q->where('depot_id', $selectedDepotId);
+                    }
+                    if (! empty($selectedGroupId)) {
+                        $q->where('group_id', $selectedGroupId);
+                    }
+                });
+            }
         } else {
-            $query->where('company_id', $user->companyname)
-                ->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
+            $query->where('company_id', $user->companyname);
 
+            if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                $query->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
                     $q->whereIn('depot_id', $depotIds)
                         ->whereIn('group_id', $driverGroupIds);
-
-            if (!empty($selectedDepotId)) {
-                $q->where('depot_id', $selectedDepotId);
-            }
-
-            if (!empty($selectedGroupId)) {
-                $q->where('group_id', $selectedGroupId);
-            }
+                    if (! empty($selectedDepotId)) {
+                        $q->where('depot_id', $selectedDepotId);
+                    }
+                    if (! empty($selectedGroupId)) {
+                        $q->where('group_id', $selectedGroupId);
+                    }
                 });
+            }
         }
 
         // Filters
@@ -869,25 +861,9 @@ public function step2(Request $request)
         $query->where('policy_id', $request->policy_id);
     }
 
-    // ✅ role based restriction (same as index)
-    if (!($user->hasRole('company') || $user->hasRole('PTC manager'))) {
 
-        $depotIds = is_array($user->depot_id)
-            ? $user->depot_id
-            : json_decode($user->depot_id, true);
 
-        $driverGroupIds = is_array($user->driver_group_id)
-            ? $user->driver_group_id
-            : json_decode($user->driver_group_id, true);
-
-        $query->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds) {
-            $q->whereIn('depot_id', $depotIds)
-              ->whereIn('group_id', $driverGroupIds);
-        });
-    }
-
-    $policyVersions = $query->pluck('policy_version')
-            ->unique()
+    $policyVersions = $query->select('policy_version')->distinct()->pluck('policy_version')
         ->sort(function ($a, $b) {
             return version_compare($a, $b);
         })
@@ -912,19 +888,12 @@ public function step2(Request $request)
 
         $query = PolicyAssignment::where('company_id', $companyId);
 
-        if (! ($user->hasRole('company') || $user->hasRole('PTC manager'))) {
-            $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
-            $driverGroupIds = is_array($user->driver_group_id) ? $user->driver_group_id : json_decode($user->driver_group_id, true);
 
-            $query->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds) {
-                $q->whereIn('depot_id', $depotIds)->whereIn('group_id', $driverGroupIds);
-            });
-        }
 
-        $policyIds = $query->pluck('policy_id')->unique();
+        $policyIds = $query->distinct()->pluck('policy_id');
 
-        // Single query to get all policy names at once
-        $policyNames = ForsBronze::whereIn('id', $policyIds)
+        $policyNames = ForsBronze::select('id', 'bronze_policy_name')
+            ->whereIn('id', $policyIds)
             ->pluck('bronze_policy_name', 'id');
 
         return response()->json(['policy_names' => $policyNames]);
@@ -983,36 +952,37 @@ public function step2(Request $request)
 
             if ($user->hasRole('company') || $user->hasRole('PTC manager')) {
 
-            if ($companyId) {
-                $query->where('company_id', $companyId);
+                if ($companyId) {
+                    $query->where('company_id', $companyId);
                 }
 
-            $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
-                if (!empty($selectedDepotId)) {
-                    $q->where('depot_id', $selectedDepotId);
+                if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                    $query->whereHas('driver', function ($q) use ($selectedDepotId, $selectedGroupId) {
+                        if (! empty($selectedDepotId)) {
+                            $q->where('depot_id', $selectedDepotId);
+                        }
+                        if (! empty($selectedGroupId)) {
+                            $q->where('group_id', $selectedGroupId);
+                        }
+                    });
                 }
-
-                if (!empty($selectedGroupId)) {
-                    $q->where('group_id', $selectedGroupId);
-                }
-            });
 
             } else {
 
-            $query->where('company_id', $companyId)
-                ->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
+                $query->where('company_id', $companyId);
 
+                if (! empty($selectedDepotId) || ! empty($selectedGroupId)) {
+                    $query->whereHas('driver', function ($q) use ($depotIds, $driverGroupIds, $selectedDepotId, $selectedGroupId) {
                         $q->whereIn('depot_id', $depotIds)
                             ->whereIn('group_id', $driverGroupIds);
-
-                    if (!empty($selectedDepotId)) {
-                        $q->where('depot_id', $selectedDepotId);
-                    }
-
-                    if (!empty($selectedGroupId)) {
-                        $q->where('group_id', $selectedGroupId);
-                    }
+                        if (! empty($selectedDepotId)) {
+                            $q->where('depot_id', $selectedDepotId);
+                        }
+                        if (! empty($selectedGroupId)) {
+                            $q->where('group_id', $selectedGroupId);
+                        }
                     });
+                }
             }
 
         // Filters

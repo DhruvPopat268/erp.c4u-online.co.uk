@@ -321,13 +321,7 @@
         });
     });
 
-    function filterTable(value) {
-        var filter = value.toLowerCase();
-        var rows = document.querySelectorAll('#policy-table tbody tr');
-        rows.forEach(function(row) {
-            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-        });
-    }
+
 
     function showExportLoader() {
         var loader = document.querySelector('.loader-bg');
@@ -507,7 +501,7 @@
                   <div class="dataTable-dropdown">
                      <label>
                         <select class="dataTable-selector" onchange="document.getElementById('per_page_input').value=this.value; document.getElementById('policy-filter-form').submit();">
-                           @foreach([25, 50, 100] as $opt)
+                           @foreach([25, 50] as $opt)
                               <option value="{{ $opt }}" {{ $perPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
                            @endforeach
                         </select>
@@ -515,7 +509,7 @@
                      </label>
                   </div>
                   <div class="dataTable-search">
-                     <input class="dataTable-input" placeholder="Search..." type="text" onkeyup="filterTable(this.value)">
+                     <input class="dataTable-input" placeholder="Search..." type="text" name="search" form="policy-filter-form" value="{{ request('search') }}" onkeyup="clearTimeout(window._searchTimer); window._searchTimer = setTimeout(() => document.getElementById('policy-filter-form').submit(), 600);">
                   </div>
                </div>
                <div class="dataTable-container">
@@ -569,8 +563,8 @@
 <!--    @endif-->
 <!--</td>-->
                         <td>{{ $assignment->policy_name ?? null }}</td>
-                        <td>{{ $assignment->driver->name ?? null }}</td>
-                        <td>{{ strtoupper($assignment->company->name ?? null) }}</td>
+                        <td>{{ $assignment->driver->name ?? 'Unknown Driver' }}</td>
+                        <td>{{ strtoupper($assignment->company->name ?? 'Unknown Company') }}</td>
                         <td>
                            @if($assignment->signature)
                            <img src="{{ asset('storage/' . $assignment->signature) }}" alt="Signature" style="width: 100px; height: auto;">
