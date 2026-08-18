@@ -101,24 +101,24 @@ class DriverController extends Controller
         // Decode the JSON data from the endorsements column
         $endorsements = json_decode($driver->endorsements, true) ?? [];
 
-        // Initialize variables for latest penalty points and offence code counts
-        $latestPenaltyPoints = '0';
+        // Initialize variables for penalty points and offence code counts
+        $latestPenaltyPoints = 0;
         $offenceCodes = [];
 
-        // Get the latest penalty points value
+        // Get the sum of all penalty points
         $latestPenaltyPoints = array_reduce($endorsements, function ($carry, $endorsement) {
-            return isset($endorsement['penaltyPoints']) ? max($carry, $endorsement['penaltyPoints']) : $carry;
+            return isset($endorsement['penaltyPoints']) ? $carry + $endorsement['penaltyPoints'] : $carry;
         }, 0);
 
-        // Collect unique offence codes
+        // Collect all offence codes
         foreach ($endorsements as $endorsement) {
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
             }
         }
 
-        // Count unique offence codes
-        $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+        // Count all offence codes (including duplicates)
+        $uniqueOffenceCodeCount = count($offenceCodes);
 
         // Return the driver profile details as JSON
         return response()->json([

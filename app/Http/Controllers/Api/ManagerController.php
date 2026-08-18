@@ -477,12 +477,12 @@ public function updateWalkaroundPreference(Request $request)
     $offenceCodes = [];
 
     if (is_array($endorsements)) {
-        // Get the latest penalty points value
+        // Get the sum of all penalty points
         $latestPenaltyPoints = array_reduce($endorsements, function ($carry, $endorsement) {
-            return isset($endorsement['penaltyPoints']) ? max($carry, $endorsement['penaltyPoints']) : $carry;
+            return isset($endorsement['penaltyPoints']) ? $carry + $endorsement['penaltyPoints'] : $carry;
         }, 0);
 
-        // Collect unique offence codes
+        // Collect all offence codes
         foreach ($endorsements as $endorsement) {
             if (isset($endorsement['offenceCode'])) {
                 $offenceCodes[] = $endorsement['offenceCode'];
@@ -490,8 +490,8 @@ public function updateWalkaroundPreference(Request $request)
         }
     }
 
-    // Count unique offence codes
-    $uniqueOffenceCodeCount = count(array_unique($offenceCodes));
+    // Count all offence codes (including duplicates)
+    $uniqueOffenceCodeCount = count($offenceCodes);
 
     // Return the specific driver details as JSON
     return response()->json([
