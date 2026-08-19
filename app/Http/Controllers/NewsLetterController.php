@@ -197,10 +197,25 @@ class NewsLetterController extends Controller
                 $recipients = array_merge($recipients, $newsletterEmails);
             }
 
+            // Deduplicate recipients by email address (keep first occurrence)
+            $uniqueRecipients = [];
+            $seenEmails = [];
+            
             foreach ($recipients as $recipient) {
-               if (empty($recipient['email']) || !str_contains($recipient['email'], '@')) {
-    continue; // skip invalid emails
-}
+                $email = strtolower(trim($recipient['email'] ?? ''));
+                
+                // Skip if email is empty, invalid, or already seen
+                if (empty($email) || !str_contains($email, '@') || in_array($email, $seenEmails)) {
+                    continue;
+                }
+                
+                $seenEmails[] = $email;
+                $uniqueRecipients[] = $recipient;
+            }
+            
+            $recipients = $uniqueRecipients;
+
+            foreach ($recipients as $recipient) {
 
 
                 $personalizedText = str_replace('{name}', $recipient['name'], $text);

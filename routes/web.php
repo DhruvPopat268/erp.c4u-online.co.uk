@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AamarpayController;
+use App\Http\Controllers\MailTestController;
 use App\Http\Controllers\AiTemplateController;
 use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\AllowanceOptionController;
@@ -276,6 +277,12 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 Route::get('/', [DashboardController::class, 'crm_dashboard_index'])->name('dashboard')->middleware(['XSS', 'auth', 'revalidate']);
 
 Route::get('/home', [DashboardController::class, 'crm_dashboard_index'])->name('home')->middleware(['XSS','auth', 'revalidate']);
+
+// Test Mail Page
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mail', [MailTestController::class, 'index'])->name('mail.index');
+    Route::post('/mail/send', [MailTestController::class, 'send'])->name('mail.send');
+});
 
 
 //Route::get('/register/{lang?}', function () {
