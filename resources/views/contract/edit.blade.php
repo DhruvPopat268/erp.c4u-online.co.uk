@@ -228,7 +228,7 @@
         <div class="form-group col-md-12">
 
             @php
-            $isEditable = is_null($contract->date_of_inspection)
+            $isEditable = (is_null($contract->date_of_inspection) || is_null($contract->PMI_due))
             ? true
             : ($editFlags['PMI Due'] ?? false);
 
@@ -254,7 +254,7 @@
             {{ Form::label('PMI_intervals', __('PMI Intervals (In Week)')) }}
 
             @php
-            $isEditable = is_null($contract->date_of_inspection)
+            $isEditable = (is_null($contract->date_of_inspection) || is_null($contract->PMI_due))
             ? true
             : ($editFlags['PMI Due'] ?? false);
             @endphp
