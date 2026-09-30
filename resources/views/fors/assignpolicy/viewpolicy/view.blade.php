@@ -590,7 +590,7 @@
                <div class="dataTable-bottom">
                   <div class="dataTable-info">
                      @if(method_exists($policyAssignments, 'firstItem'))
-                        Showing {{ $policyAssignments->firstItem() ?? 0 }} to {{ $policyAssignments->lastItem() ?? 0 }} entries
+                        Showing {{ $policyAssignments->firstItem() ?? 0 }} to {{ $policyAssignments->lastItem() ?? 0 }} of {{ $policyAssignments->total() }} entries
                      @else
                         Showing {{ $policyAssignments->count() ?? 0 }} records
                      @endif
