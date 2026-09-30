@@ -593,7 +593,31 @@ public function step2(Request $request)
              $selectedGroupId = $request->input('group_id');
 
         if ($user->can('manage assign policy')) {
-            $query = PolicyAssignment::with([
+            // Require company filter for optimal performance
+            $isPTCManager = $user->hasRole('PTC manager') && !$user->hasRole('company');
+            $hasCompanyFilter = $request->has('company_id') && $request->company_id;
+            
+            if ($isPTCManager && !$hasCompanyFilter) {
+                $companies = CompanyDetails::where('company_status', 'Active')->get();
+                $depots = collect();
+                $groups = collect();
+                $policyAssignments = collect();
+                $policyNames = [];
+                $policyVersions = [];
+                $statuses = ['Pending', 'Accept', 'Decline', 'Reassigned'];
+                $companyDetails = null;
+                $perPage = 25;
+                $error = __('⚠️ PERFORMANCE NOTICE: Please select a company to view policy assignments. Querying all records takes 12+ seconds. With a company filter, it loads instantly.');
+                return view('fors.assignpolicy.viewpolicy.view', compact('policyAssignments', 'companies', 'policyNames', 'policyVersions', 'statuses', 'companyDetails', 'depots', 'groups', 'perPage', 'error'));
+            }
+
+            $query = PolicyAssignment::select(
+                'id', 'driver_id', 'policy_id', 'policy_type', 'company_id', 'status', 
+                'signature', 'reviewed_on', 'assigned_by', 'policy_version', 'duration', 'comment',
+                'created_at', 'updated_at'
+                // NOTE: Excluding 'description' (215KB avg) and 'next_review_date' (unused)
+                // These columns contain full HTML and slow down queries by 10-15 seconds
+            )->with([
                     'driver:id,name,depot_id,group_id',
                     'company:id,name',
                     'creator:id,username',
@@ -655,6 +679,7 @@ public function step2(Request $request)
             }
 
             $perPage = $request->input('per_page', 25);
+            
             $policyAssignments = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
             // Preload all policy names in ONE query instead of N+1

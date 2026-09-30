@@ -395,6 +395,11 @@
    {{ session('message') }}
 </div>
 @endif
+@if ($errors->has('error') || isset($error))
+<div class="alert alert-warning" role="alert">
+   <strong>⚠️ Performance Notice:</strong> {{ $errors->first('error') ?? $error }}
+</div>
+@endif
 <div class="row">
    <div class="col-12">
       <div class="card">
@@ -567,7 +572,7 @@
                         <td>{{ strtoupper($assignment->company->name ?? 'Unknown Company') }}</td>
                         <td>
                            @if($assignment->signature)
-                           <img src="{{ asset('storage/' . $assignment->signature) }}" alt="Signature" style="width: 100px; height: auto;">
+                           <img src="{{ asset('storage/' . $assignment->signature) }}" alt="Signature" style="width: 100px; height: auto;" loading="lazy">
                            @endif
                         </td>
 
@@ -584,10 +589,16 @@
                </div>
                <div class="dataTable-bottom">
                   <div class="dataTable-info">
-                     Showing {{ $policyAssignments->firstItem() ?? 0 }} to {{ $policyAssignments->lastItem() ?? 0 }} of {{ $policyAssignments->total() }} entries
+                     @if(method_exists($policyAssignments, 'firstItem'))
+                        Showing {{ $policyAssignments->firstItem() ?? 0 }} to {{ $policyAssignments->lastItem() ?? 0 }} entries
+                     @else
+                        Showing {{ $policyAssignments->count() ?? 0 }} records
+                     @endif
                   </div>
                   <nav class="dataTable-pagination">
-                     {{ $policyAssignments->appends(request()->query())->onEachSide(1)->links('vendor.pagination.simple-datatables') }}
+                     @if(method_exists($policyAssignments, 'links'))
+                        {{ $policyAssignments->appends(request()->query())->onEachSide(1)->links('vendor.pagination.simple-datatables') }}
+                     @endif
                   </nav>
                </div>
             </div>{{-- end dataTable-wrapper --}}
