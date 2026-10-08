@@ -342,6 +342,26 @@ public function create()
 public function store(Request $request)
 {
     if (\Auth::user()->can('create pcn')) {
+
+    // ========== DEBUG LOGS START ==========
+    \Log::info('PCN Store - All request inputs: ' . json_encode($request->all()));
+    \Log::info('PCN Store - vehicle_id: ' . $request->input('vehicle_id'));
+    \Log::info('PCN Store - vehicle_registration_number: ' . $request->input('vehicle_registration_number'));
+    \Log::info('PCN Store - company_id: ' . $request->input('company_id'));
+    \Log::info('PCN Store - depot_id: ' . $request->input('depot_id'));
+
+    // Check if vehicle_id exists in vehicles table
+    $vehicleIdInput = $request->input('vehicle_id');
+    if ($vehicleIdInput) {
+        $inVehicles = \App\Models\Vehicles::find($vehicleIdInput);
+        $inVehicleDetails = \App\Models\vehicleDetails::find($vehicleIdInput);
+        \Log::info('PCN Store - vehicle_id exists in vehicles table: ' . ($inVehicles ? 'YES (id='.$inVehicles->id.')' : 'NO'));
+        \Log::info('PCN Store - vehicle_id exists in vehicle_details table: ' . ($inVehicleDetails ? 'YES (id='.$inVehicleDetails->id.' reg='.$inVehicleDetails->registrationNumber.')' : 'NO'));
+    } else {
+        \Log::info('PCN Store - vehicle_id is empty/null');
+    }
+    // ========== DEBUG LOGS END ==========
+
     // Validate the incoming request
     $validator = \Validator::make(
         $request->all(),
@@ -358,7 +378,7 @@ public function store(Request $request)
             'status' => 'required|string|in:Closed,Outstanding',
             'attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'comments' => 'nullable|string',
-            'vehicle_id' => 'nullable|exists:vehicles,id', // Validate the vehicle ID
+            'vehicle_id' => 'nullable|exists:vehicle_details,id', // Validate the vehicle ID
                         'depot_id' => 'required|exists:depots,id',
                         'notice_number' => 'nullable|string',
 
@@ -367,9 +387,12 @@ public function store(Request $request)
     );
 
     if ($validator->fails()) {
+        \Log::info('PCN Store - Validation FAILED: ' . json_encode($validator->errors()->toArray()));
         $messages = $validator->getMessageBag();
         return redirect()->back()->with('error', $messages->first());
     }
+
+    \Log::info('PCN Store - Validation PASSED');
 
     // Fetch vehicle data first
     $registrationNumber = $request->input('vehicle_registration_number');
