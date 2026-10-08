@@ -144,6 +144,10 @@ if (! is_array($vehicleGroupIds)) {
 
                 // Retrieve vehicles belonging to the selected company, only if the company's status is "Active"
                 $vehicles = \App\Models\vehicleDetails::where('companyName', $selectedCompanyId)
+                    ->where(function ($query) {
+                        $query->whereNull('vehicle_status')
+                            ->orWhere('vehicle_status', 'not like', 'Archive%');
+                    })
                     ->whereHas('types', function ($query) {
                         $query->where('company_status', 'Active'); // Ensure only vehicles from active companies are included
                     })
@@ -192,6 +196,10 @@ if (! is_array($vehicleGroupIds)) {
 
                 // Retrieve vehicles for the logged-in user's company, only if the company's status is "Active"
                 $vehicles = \App\Models\vehicleDetails::where('companyName', $user->companyname)->whereIn('depot_id', $depotIds)->whereIn('group_id', $vehicleGroupIds)
+                    ->where(function ($query) {
+                        $query->whereNull('vehicle_status')
+                            ->orWhere('vehicle_status', 'not like', 'Archive%');
+                    })
                     ->whereHas('types', function ($query) {
                         $query->where('company_status', 'Active'); // Ensure only vehicles from active companies are included
                     })
@@ -872,7 +880,11 @@ if (! is_array($vehicleGroupIds)) {
         $groupId = $request->group_id;
         $companyId = $request->company_id;
 
-        $vehicles = \App\Models\vehicleDetails::query();
+        $vehicles = \App\Models\vehicleDetails::query()
+            ->where(function ($query) {
+                $query->whereNull('vehicle_status')
+                    ->orWhere('vehicle_status', 'not like', 'Archive%');
+            });
 
         if ($companyId) {
             $vehicles->where('companyName', $companyId);
