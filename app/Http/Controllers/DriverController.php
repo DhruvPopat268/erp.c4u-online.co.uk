@@ -2537,27 +2537,30 @@ class DriverController extends Controller
             '30_DAYS' => $now->copy()->addDays(30)->format('d/m/Y'),
         ];
 
-        // Fetch drivers whose licenses are expiring in 90, 60, or 30 days or have already expired
-        $drivers = \App\Models\Driver::where(function ($query) use ($dates) {
-            $query->where(function ($q) use ($dates) {
-                $q->whereDate('driver_licence_expiry', '=', $dates['90_DAYS'])
-                    ->orWhereDate('driver_licence_expiry', '=', $dates['60_DAYS'])
-                    ->orWhereDate('driver_licence_expiry', '=', $dates['30_DAYS']);
+        // Fetch only Active drivers whose licenses are expiring in 90, 60, or 30 days
+        // and whose company is also Active
+        $drivers = \App\Models\Driver::where('driver_status', 'Active')
+            ->whereHas('companyDetails', function ($query) {
+                $query->where('company_status', 'Active');
             })
-                ->orWhere(function ($q) use ($dates) {
-                    $q->whereDate('cpc_validto', '=', $dates['90_DAYS'])
-                        ->orWhereDate('cpc_validto', '=', $dates['60_DAYS'])
-                        ->orWhereDate('cpc_validto', '=', $dates['30_DAYS']);
+            ->where(function ($query) use ($dates) {
+                $query->where(function ($q) use ($dates) {
+                    $q->whereDate('driver_licence_expiry', '=', $dates['90_DAYS'])
+                        ->orWhereDate('driver_licence_expiry', '=', $dates['60_DAYS'])
+                        ->orWhereDate('driver_licence_expiry', '=', $dates['30_DAYS']);
                 })
-                ->orWhere(function ($q) use ($dates) {
-                    $q->whereDate('tacho_card_valid_to', '=', $dates['90_DAYS'])
-                        ->orWhereDate('tacho_card_valid_to', '=', $dates['60_DAYS'])
-                        ->orWhereDate('tacho_card_valid_to', '=', $dates['30_DAYS']);
-                });
-        })
-            ->with(['companyDetails' => function ($query) {
-                $query->where('company_status', 'Active'); // Filter by Active company status
-            }]) // Eager load only active company details
+                    ->orWhere(function ($q) use ($dates) {
+                        $q->whereDate('cpc_validto', '=', $dates['90_DAYS'])
+                            ->orWhereDate('cpc_validto', '=', $dates['60_DAYS'])
+                            ->orWhereDate('cpc_validto', '=', $dates['30_DAYS']);
+                    })
+                    ->orWhere(function ($q) use ($dates) {
+                        $q->whereDate('tacho_card_valid_to', '=', $dates['90_DAYS'])
+                            ->orWhereDate('tacho_card_valid_to', '=', $dates['60_DAYS'])
+                            ->orWhereDate('tacho_card_valid_to', '=', $dates['30_DAYS']);
+                    });
+            })
+            ->with('companyDetails')
             ->get();
 
         // Group drivers by their associated company
@@ -2568,9 +2571,9 @@ class DriverController extends Controller
             // Fetch company details
             $companyDetails = \App\Models\CompanyDetails::find($companyId);
 
-            // Check if company details exist and if the status is Active
+            // Safety check — should already be filtered by whereHas, but guard just in case
             if (! $companyDetails || $companyDetails->company_status !== 'Active') {
-                continue; // Skip to the next iteration if company details are not valid or not active
+                continue;
             }
 
             // Prepare data for company email
@@ -2619,13 +2622,14 @@ class DriverController extends Controller
             '30_DAYS' => $now->copy()->addDays(30)->format('d/m/Y'),
         ];
 
-        $drivers = \App\Models\Driver::where(function ($query) use ($dates) {
-            $query->whereIn('driver_licence_expiry', $dates)
-                ->orWhereIn('cpc_validto', $dates)
-                ->orWhereIn('tacho_card_valid_to', $dates);
-        })
+        $drivers = \App\Models\Driver::where('driver_status', 'Active')
             ->whereHas('companyDetails', function ($query) {
                 $query->where('company_status', 'Active');
+            })
+            ->where(function ($query) use ($dates) {
+                $query->whereIn('driver_licence_expiry', $dates)
+                    ->orWhereIn('cpc_validto', $dates)
+                    ->orWhereIn('tacho_card_valid_to', $dates);
             })
             ->get();
 
@@ -2690,7 +2694,15 @@ class DriverController extends Controller
 
         foreach ($groupedReminders as $driverId => $reminders) {
             $driver = \App\Models\Driver::find($driverId);
-            if (! $driver || empty($driver->contact_email)) {
+
+            // Skip if driver not found, not Active, or has no email
+            if (! $driver || $driver->driver_status !== 'Active' || empty($driver->contact_email)) {
+                continue;
+            }
+
+            // Skip if the driver's company is not Active
+            $companyDetails = $driver->companyDetails;
+            if (! $companyDetails || $companyDetails->company_status !== 'Active') {
                 continue;
             }
 
