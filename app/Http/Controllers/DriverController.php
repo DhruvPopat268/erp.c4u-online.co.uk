@@ -1156,7 +1156,7 @@ class DriverController extends Controller
                 if (isset($data['endorsements']) && is_array($data['endorsements'])) {
                     foreach ($data['endorsements'] as $endorsement) {
                         if (isset($endorsement['penaltyPoints'])) {
-                            $penaltyPoints = max($penaltyPoints, $endorsement['penaltyPoints']);
+                            $penaltyPoints += (int) $endorsement['penaltyPoints']; // Sum all endorsement points
                         }
                     }
                 }
@@ -1167,13 +1167,13 @@ class DriverController extends Controller
 
                 // Calculate next_lc_check
                 $nextLcValidUntil = null;
-                if ($penaltyPoints < 5) {
+                if ($penaltyPoints > 5) {
                     $nextLcValidUntil = Carbon::createFromFormat('d/m/Y H:i:s', $latestLcCheck)
-                        ->addMonths(3)
+                        ->addMonths(1)
                         ->format('d/m/Y');
                 } else {
                     $nextLcValidUntil = Carbon::createFromFormat('d/m/Y H:i:s', $latestLcCheck)
-                        ->addMonths()
+                        ->addMonths(3)
                         ->format('d/m/Y');
                 }
 
@@ -4104,7 +4104,7 @@ class DriverController extends Controller
                     if (isset($data['endorsements']) && is_array($data['endorsements'])) {
                         foreach ($data['endorsements'] as $endorsement) {
                             if (isset($endorsement['penaltyPoints'])) {
-                                $penaltyPoints = max($penaltyPoints, $endorsement['penaltyPoints']);
+                                $penaltyPoints += (int) $endorsement['penaltyPoints']; // Sum all endorsement points
                             }
                         }
                     }
@@ -4115,13 +4115,13 @@ class DriverController extends Controller
 
                     // Calculate next_lc_check
                     $nextLcValidUntil = null;
-                    if ($penaltyPoints < 5) {
+                    if ($penaltyPoints > 5) {
                         $nextLcValidUntil = Carbon::createFromFormat('d/m/Y H:i:s', $latestLcCheck)
-                            ->addMonths(3)
+                            ->addMonths(1)
                             ->format('d/m/Y');
                     } else {
                         $nextLcValidUntil = Carbon::createFromFormat('d/m/Y H:i:s', $latestLcCheck)
-                            ->addMonths()
+                            ->addMonths(3)
                             ->format('d/m/Y');
                     }
 
