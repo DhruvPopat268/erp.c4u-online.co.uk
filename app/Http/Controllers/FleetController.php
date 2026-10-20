@@ -1874,4 +1874,46 @@ $selectedGroupId = $request->input('group_id');
             return redirect()->back()->with('error', 'Original file not found. Path: '.$oldFullPath);
         }
     }
+
+    public function plannerdocumentupload(Request $request, $id)
+    {
+        if (!\Auth::user()->can('manage planner')) {
+            return redirect()->back()->with('error', 'Permission Denied.');
+        }
+
+        $reminder = \App\Models\FleetPlannerReminder::findOrFail($id);
+
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $path = $file->storeAs('fleet/planner', $originalName, 'local');
+                \App\Models\FleetFileUpload::create([
+                    'fleet_planner_reminder_id' => $reminder->id,
+                    'file_path' => $path,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'File(s) uploaded successfully.');
+        }
+
+        return redirect()->back()->with('error', 'No files were selected.');
+    }
+
+    public function plannerdocumentdestroy($id)
+    {
+        if (!\Auth::user()->can('manage planner')) {
+            return redirect()->back()->with('error', 'Permission Denied.');
+        }
+
+        $plannerFile = \App\Models\FleetFileUpload::findOrFail($id);
+
+        $filePath = storage_path($plannerFile->file_path);
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $plannerFile->delete();
+
+        return redirect()->back()->with('success', 'File deleted successfully.');
+    }
 }
