@@ -1595,21 +1595,21 @@ $selectedGroupId = $request->input('group_id');
 
         $dates = \Carbon\CarbonPeriod::create($startDate, '1 week', $endDate);
 
-        // Group dates by quarter (1 Jan - 30 Apr, 1 May - 31 Aug, 1 Sep - 31 Dec)
-        $groupedDates = [
-            'group1' => [],
-            'group2' => [],
-            'group3' => [],
-        ];
+        // Collect all weekly dates into a flat array first
+        $allDates = iterator_to_array($dates, false);
 
-        foreach ($dates as $date) {
-            if ($date->month <= 4) {
-                $groupedDates['group1'][] = $date;
-            } elseif ($date->month <= 8) {
-                $groupedDates['group2'][] = $date;
-            } else {
-                $groupedDates['group3'][] = $date;
-            }
+        // Split sequentially into chunks of 17 weeks per page (instead of fixed month buckets)
+        $chunks = array_chunk($allDates, 17);
+
+        // Build groupedDates as an ordered array of chunks with metadata
+        // Each entry: ['dates' => [...Carbon...], 'label' => 'DD Mon YYYY – DD Mon YYYY']
+        $groupedDates = [];
+        foreach ($chunks as $chunk) {
+            if (count($chunk) === 0) continue;
+            $groupedDates[] = [
+                'dates' => $chunk,
+                'label' => $chunk[0]->format('d M Y') . ' – ' . end($chunk)->format('d M Y'),
+            ];
         }
 
         // Handle depot ID extraction

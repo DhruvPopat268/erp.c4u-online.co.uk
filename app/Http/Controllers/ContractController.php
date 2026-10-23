@@ -3168,6 +3168,7 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
 
         $rules = [
             'vehicle_nick_name' => 'nullable',
+            'registrationNumber' => 'required|string|max:20',
             'tacho_calibration' => 'nullable',
             'dvs_pss_permit_expiry' => 'nullable',
             'insurance_type' => 'nullable|array',
@@ -3266,13 +3267,51 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
             $contract->vehicle_status = $request->vehicle_status;
         }
 
+        // -----------------------------
+        // REGISTRATION NUMBER UPDATE
+        // -----------------------------
+        $newReg    = strtoupper(trim($request->registrationNumber));
+        $oldReg    = $contract->registrationNumber;
+        $regChanged = $newReg !== strtoupper(trim($oldReg));
+
+        if ($regChanged) {
+            // Duplicate check — company-scoped, exclude current record
+            $duplicate = \App\Models\vehicleDetails::where('companyName', $request->companyName)
+                ->where('registrationNumber', $newReg)
+                ->where('id', '!=', $contract->id)
+                ->exists();
+
+            if ($duplicate) {
+                return redirect()->back()->with('error', __('This registration number already exists for the selected company.'));
+            }
+
+            $contract->registrationNumber = $newReg;
+        }
+
         $contract->save();
 
         // Update related vehicle
         if ($contract->vehicle) {
             $contract->vehicle->companyName = $request->companyName;
             $contract->vehicle->annual_test_expiry_date = $request->annual_test_expiry_date;
+            if ($regChanged) {
+                $contract->vehicle->registrations = $newReg;
+            }
             $contract->vehicle->save();
+        }
+
+        // Update registration in all other tables if it changed
+        if ($regChanged) {
+            \App\Models\VehicleReminderLog::where('vehicle_id', $contract->id)
+                ->update(['registration_number' => $newReg]);
+
+            \App\Models\VehicleOverdueReminderLog::where('vehicle_id', $contract->id)
+                ->update(['registration_number' => $newReg]);
+
+            \App\Models\Pcn::where(function ($q) use ($contract, $oldReg) {
+                $q->where('vehicle_id', $contract->id)
+                  ->orWhere('vehicle_registration_number', $oldReg);
+            })->update(['vehicle_registration_number' => $newReg]);
         }
 
         // 🟩 NEW VALUES AFTER SAVE
@@ -3728,6 +3767,7 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
         if (\Auth::user()->can('edit vehicle')) {
             $rules = [
                 'vehicle_nick_name' => 'nullable',
+                'registrationNumber' => 'required|string|max:20',
                 'insurance_type' => 'nullable|array',
                 'insurance_type.*' => 'nullable|string|in:Motor Insurance',
                 'insurance' => 'nullable',
@@ -3821,13 +3861,51 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
                 $contract->vehicle_status = $request->vehicle_status; // Regular status
             }
 
+            // -----------------------------
+            // REGISTRATION NUMBER UPDATE
+            // -----------------------------
+            $newReg    = strtoupper(trim($request->registrationNumber));
+            $oldReg    = $contract->registrationNumber;
+            $regChanged = $newReg !== strtoupper(trim($oldReg));
+
+            if ($regChanged) {
+                // Duplicate check — company-scoped, exclude current record
+                $duplicate = \App\Models\vehicleDetails::where('companyName', $request->companyName)
+                    ->where('registrationNumber', $newReg)
+                    ->where('id', '!=', $contract->id)
+                    ->exists();
+
+                if ($duplicate) {
+                    return redirect()->back()->with('error', __('This registration number already exists for the selected company.'));
+                }
+
+                $contract->registrationNumber = $newReg;
+            }
+
             $contract->save();
 
             if ($contract->vehicle) {
                 $contract->vehicle->companyName = $request->companyName;
                 // New: Updating mot_expiry in the related vehicle
                 $contract->vehicle->annual_test_expiry_date = $request->annual_test_expiry_date;
+                if ($regChanged) {
+                    $contract->vehicle->registrations = $newReg;
+                }
                 $contract->vehicle->save();
+            }
+
+            // Update registration in all other tables if it changed
+            if ($regChanged) {
+                \App\Models\VehicleReminderLog::where('vehicle_id', $contract->id)
+                    ->update(['registration_number' => $newReg]);
+
+                \App\Models\VehicleOverdueReminderLog::where('vehicle_id', $contract->id)
+                    ->update(['registration_number' => $newReg]);
+
+                \App\Models\Pcn::where(function ($q) use ($contract, $oldReg) {
+                    $q->where('vehicle_id', $contract->id)
+                      ->orWhere('vehicle_registration_number', $oldReg);
+                })->update(['vehicle_registration_number' => $newReg]);
             }
 
             // 🟩 NEW VALUES AFTER SAVE

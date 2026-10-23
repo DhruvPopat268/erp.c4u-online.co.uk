@@ -11,6 +11,11 @@
             {{ Form::label('vehicle_nick_name', __('Vehicle ID'),['class'=>'form-label']) }}
             {{ Form::text('vehicle_nick_name', $contract->vehicle_nick_name, array('class' => 'form-control')) }}
         </div>
+
+        <div class="form-group col-md-12">
+            {{ Form::label('registrationNumber', __('Vehicle Registration Number'), ['class' => 'form-label']) }}
+            {{ Form::text('registrationNumber', $contract->registrationNumber, ['class' => 'form-control', 'required' => 'required', 'placeholder' => 'e.g. WK67JWY']) }}
+        </div>
         @php
             $fixedStatuses = ['Owned', 'Rented', 'Leased', 'Contract Hire', 'Depot Transfer', 'Archive'];
             $currentStatus = $contract->vehicle_status;
