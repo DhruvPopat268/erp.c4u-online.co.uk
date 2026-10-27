@@ -219,6 +219,7 @@ if (! is_array($vehicleGroupIds)) {
 
                     // Extract registration number if available
                     $registrationNumber = $vehicleDetails ? $vehicleDetails->registrationNumber : 'N/A';
+                    $vehicleNickName = $vehicleDetails ? ($vehicleDetails->vehicle_nick_name ?? '') : '';
                     // Set the event title
                     $eventTitle = $item->planner_type; // Default planner type as title
 
@@ -312,6 +313,7 @@ if (! is_array($vehicleGroupIds)) {
                         'tyre_cost' => $reminder->tyre_cost,  // Add tyre cost
                         'total_cost' => $reminder->total_cost,
                         'registration_number' => $registrationNumber,
+                        'vehicle_nick_name' => $vehicleNickName,
                         'company_name' => $companyName,
                     ];
                 });
@@ -1544,7 +1546,7 @@ $selectedGroupId = $request->input('group_id');
 
         return response()->streamDownload(function () use ($query, $fromDate, $toDate, $selectedYear) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Company Name', 'Vehicle Registration Number', 'Planner Type', 'Reminder Date', 'Status', 'Interval']);
+            fputcsv($out, ['Company Name', 'Vehicle ID', 'Planner Type', 'Reminder Date', 'Status', 'Interval']);
 
             $query->chunk(500, function ($fleets) use ($out, $fromDate, $toDate, $selectedYear) {
                 foreach ($fleets as $fleet) {
@@ -1554,7 +1556,7 @@ $selectedGroupId = $request->input('group_id');
                     foreach ($fleet->reminders as $reminder) {
                         fputcsv($out, [
                             $fleet->company ? $fleet->company->name : 'N/A',
-                            $fleet->vehicle->registrationNumber ?? '',
+                            $fleet->vehicle ? ($fleet->vehicle->vehicle_nick_name ?? '') : '',
                             $fleet->planner_type,
                             \Carbon\Carbon::parse($reminder->next_reminder_date)->format('d/m/Y'),
                             $reminder->status,

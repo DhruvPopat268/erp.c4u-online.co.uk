@@ -1,173 +1,158 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Forward Planner</title>
+        <title>Forward Planner</title>
     <style>
-        @page {
-            margin: 8mm 8mm;
-            size: a4 landscape;
-        }
         body {
-            font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
-            font-size: 8px;
-            color: #1e293b;
-            margin: 0;
-            padding: 0;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        .header-table {
-            width: 100%;
-            margin-bottom: 8px;
-            border-bottom: 2px solid #cbd5e1;
-            padding-bottom: 6px;
-        }
-        .header-table td {
-            vertical-align: middle;
-            border: none;
-            padding: 0 4px;
-        }
-        .legend-table {
-            width: 100%;
-            margin-bottom: 8px;
-            font-size: 7.5px;
-        }
-        .legend-table td {
-            border: none;
-            text-align: center;
-            padding: 2px 0;
-        }
-        .legend-badge {
-            display: inline-block;
-            padding: 2px 5px;
-            color: #ffffff;
-            font-weight: bold;
-            border-radius: 2px;
-            margin-right: 6px;
-        }
-        .section-title {
-            font-size: 9.5px;
-            font-weight: bold;
-            color: #0f172a;
-            margin: 6px 0 4px 0;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #e2e8f0;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            margin: 20mm 15mm;
         }
         .calendar-table {
             width: 100%;
-            table-layout: fixed;
-            margin-bottom: 12px;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
         .calendar-table th, .calendar-table td {
-            border: 1px solid #cbd5e1;
+            border: 1px solid #000;
             text-align: center;
-            padding: 2px 1px;
-            font-size: 7.5px;
-            word-wrap: break-word;
-            overflow: hidden;
+            padding: 5px;
+            font-size: 9px;
         }
         .calendar-table th {
-            background-color: #f1f5f9;
-            color: #1e293b;
-            font-weight: bold;
+            background-color: #f4f4f4;
         }
-        .reg-col {
-            width: 65px;
-            background-color: #f8fafc;
-            font-weight: bold;
-            font-size: 7.5px;
-            text-align: left !important;
-            padding-left: 3px !important;
+        h4 {
+            text-align: left;
+            margin-bottom: 10px;
         }
         .week-box {
-            display: block;
-            margin: 1px 0;
-            padding: 1px;
-            font-size: 6.5px;
-            font-weight: bold;
-            color: #ffffff;
-            border-radius: 2px;
-            text-align: center;
-        }
-        .page-break {
-            page-break-after: always;
-        }
-        .reminder-summary-table {
-            width: 100%;
-            margin-top: 6px;
-        }
-        .reminder-summary-table th, .reminder-summary-table td {
-            border: 1px solid #cbd5e1;
-            padding: 3px 5px;
+            display: inline-block;
+            padding: 3px;
+            background-color: #e6e6e6;
+            margin-top: 2px;
+            margin-bottom: 2px;
             font-size: 8px;
-            text-align: left;
+            border-radius: 3px;
         }
-        .reminder-summary-table th {
-            background-color: #f1f5f9;
+
+        /* Color key on top right */
+        .color-key {
+            position: absolute;
+            top: 20mm;
+            right: 15mm;
+            white-space: nowrap;
+        }
+        .color-key div {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .color-box {
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        /* New Reminder section styling */
+        .reminder-list-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .reminder-list {
+            font-size: 9px;
+            margin-top: 20px;
+            page-break-before: always;
+        }
+        .header {
+            text-align: left;
+            position: fixed;
+            top: 5px;
+            width: 89%;
+            background-color: transparent;
+            border-bottom: 1px solid #ddd;
+            z-index: 1000;
+            margin-top: -2%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-info {
+            flex-grow: 1;
+            text-align: right;
+            margin-top: -30px;
+            margin-bottom: -5px;
+        }
+
+        .h6.text-sm {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
             font-weight: bold;
+            left: 1000px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
-    <table class="header-table">
-        <tr>
-            <td style="width: 25%; text-align: left;">
-                @if(!empty($img))
-                    <img src="{{ $img }}" style="max-height: 40px; max-width: 150px;" alt="Logo" />
-                @endif
-            </td>
-            <td style="width: 50%; text-align: center;">
-                <div style="font-size: 13px; font-weight: bold; color: #0f172a;">Forward Planner</div>
-                <div style="font-size: 10px; font-weight: bold; color: #334155; margin-top: 2px;">
-                    @if (!empty($fromDate) && !empty($toDate))
-                        {{ \Carbon\Carbon::parse($fromDate)->format('d/m/Y') }} to {{ \Carbon\Carbon::parse($toDate)->format('d/m/Y') }}
-                    @else
-                        Year {{ $selectedYear }}
-                    @endif
-                </div>
-                <div style="font-size: 9px; color: #64748b; margin-top: 1px;">
-                    {{ strtoupper($companyName) }}
-                </div>
-            </td>
-            <td style="width: 25%; text-align: right; font-size: 8px; color: #64748b;">
-                Exported: {{ date('d/m/Y') }}
-            </td>
-        </tr>
-    </table>
-
-    <!-- Color Legend -->
-    <table class="legend-table">
-        <tr>
-            <td>
-                <span class="legend-badge" style="background-color: #05b794;">PMI</span>
-                <span class="legend-badge" style="background-color: #b47bbf;">Brake Test</span>
-                <span class="legend-badge" style="background-color: #10b981;">Tacho</span>
-                <span class="legend-badge" style="background-color: #c0c102;">Insurance</span>
-                <span class="legend-badge" style="background-color: #d59436;">Road Tax</span>
-                <span class="legend-badge" style="background-color: #9e9ee5;">DVS/PSS</span>
-                <span class="legend-badge" style="background-color: #6c757d;">MOT</span>
-            </td>
-        </tr>
-    </table>
-
-    <!-- Calendar Tables in Chunks -->
-    @foreach($groupedDates as $chunkIndex => $dates)
-        @if(count($dates) > 0)
-            <div class="section-title">
-                Schedule: Week {{ collect($dates)->first()->format('d/m/Y') }} &mdash; {{ collect($dates)->last()->copy()->endOfWeek()->format('d/m/Y') }}
+    <div class="header">
+        <div class="header-logo">
+            <img src="{{ $img }}" style="max-width: 100px;" alt="Logo" />
+        </div>
+        <div class="header-info">
+            <div class="h6 text-sm">
+                <span class="text-sm" style="font-family: Arial, Helvetica, sans-serif;">
+                    <b>
+                        Forward Planner -
+                        @if (!empty($fromDate) && !empty($toDate))
+                            {{ \Carbon\Carbon::parse($fromDate)->format('d/m/Y') }} to {{ \Carbon\Carbon::parse($toDate)->format('d/m/Y') }}
+                        @else
+                            {{ $selectedYear }}
+                        @endif
+                    </b>
+                </span>
             </div>
+            <div class="h6 text-sm" style="margin-bottom: 25px;">
+                <span class="text-sm" style="font-family: Arial, Helvetica, sans-serif;">
+                    <b>{{ $companyName }}</b>
+                </span>
+            </div>
+        </div>
+    </div>
 
+    <!-- Color key at the top right in a single row -->
+    <div class="color-key">
+        <div><span class="color-box" style="background-color: #67a8e9;"></span> PMI Due</div>
+        <div><span class="color-box" style="background-color: #b47bbf;"></span> Brake Test Due</div>
+        <div><span class="color-box" style="background-color: green;"></span> Tacho Calibration</div>
+        <div><span class="color-box" style="background-color: #c0c102;"></span> Insurance</div>
+        <div><span class="color-box" style="background-color: #d59436;"></span> Road Tax</div>
+        <div><span class="color-box" style="background-color: #9e9ee5;"></span> DVS/PSS Permit Expiry</div>
+        <div><span class="color-box" style="background-color: #6c757d;"></span> MOT</div>
+    </div>
+
+    @php
+        $counter = 1;
+    @endphp
+
+    <!-- Calendar Tables -->
+    @foreach($groupedDates as $chunkIndex => $chunk)
+        @php $dates = $chunk['dates'] ?? $chunk; @endphp
+        @if(count($dates) > 0)
+            <h4>Schedule: {{ collect($dates)->first()->format('d M Y') }} &ndash; {{ collect($dates)->last()->copy()->endOfWeek()->format('d M Y') }}</h4>
             <table class="calendar-table">
                 <thead>
                     <tr>
-                        <th class="reg-col">Reg No.</th>
+                        <th>Reg No.</th>
                         @foreach($dates as $date)
-                            <th>{{ $date->format('d/m') }}</th>
+                            <th>{{ $date->format('d/m/Y') }}</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -179,65 +164,59 @@
                             $regNo = $vehicle ? ($vehicle->vehicle_type == 'Trailer' ? ($vehicle->vehicle_nick_name ?: $vehicle->registrationNumber) : $vehicle->registrationNumber) : 'N/A';
                         @endphp
                         <tr>
-                            <td class="reg-col">{{ $regNo }}</td>
+                            <td>{{ $regNo }}</td>
                             @foreach($dates as $date)
                                 <td>
                                     @php
-                                        $weekStart = $date->copy();
-                                        $weekEnd = $date->copy()->endOfWeek();
+                                        $weekStartDate = $date->copy()->startOfWeek();
+                                        $weekEndDate = $date->copy()->endOfWeek();
 
-                                        $matchingReminders = collect($fleets)->pluck('reminders')->flatten()->filter(function ($reminder) use ($weekStart, $weekEnd) {
+                                        $matchingReminders = collect($fleets)->pluck('reminders')->flatten()->filter(function ($reminder) use ($weekStartDate, $weekEndDate) {
                                             if (empty($reminder->next_reminder_date)) {
                                                 return false;
                                             }
-                                            return \Carbon\Carbon::parse($reminder->next_reminder_date)->between($weekStart, $weekEnd, true);
+                                            return \Carbon\Carbon::parse($reminder->next_reminder_date)->between($weekStartDate, $weekEndDate, true);
                                         });
                                     @endphp
 
                                     @if($matchingReminders->isNotEmpty())
                                         @foreach($matchingReminders as $reminder)
-                                            @php
-                                                $plannerType = $reminder->fleet ? $reminder->fleet->planner_type : '';
-                                                $bgColor = '#3788d8';
-                                                $shortTitle = $plannerType;
-
-                                                switch ($plannerType) {
-                                                    case 'PMI Due':
-                                                        $bgColor = '#05b794';
-                                                        $shortTitle = 'PMI';
-                                                        break;
-                                                    case 'Brake Test Due':
-                                                        $bgColor = '#b47bbf';
-                                                        $shortTitle = 'BT';
-                                                        break;
-                                                    case 'Tacho Calibration':
-                                                        $bgColor = '#10b981';
-                                                        $shortTitle = 'TACHO';
-                                                        break;
-                                                    case 'Insurance':
-                                                        $bgColor = '#c0c102';
-                                                        $shortTitle = 'INS';
-                                                        break;
-                                                    case 'Road Tax':
-                                                        $bgColor = '#d59436';
-                                                        $shortTitle = 'TAX';
-                                                        break;
-                                                    case 'DVS/PSS Permit Expiry':
-                                                        $bgColor = '#9e9ee5';
-                                                        $shortTitle = 'DVS';
-                                                        break;
-                                                    case 'MOT':
-                                                        $bgColor = '#6c757d';
-                                                        $shortTitle = 'MOT';
-                                                        break;
-                                                }
-                                            @endphp
-                                            <div class="week-box" style="background-color: {{ $bgColor }};">
-                                                {{ $shortTitle }}
+                                            <div class="week-box"
+                                                @if($reminder->fleet->planner_type == 'PMI Due')
+                                                    style="background-color: #67a8e9;"
+                                                @elseif($reminder->fleet->planner_type == 'Brake Test Due')
+                                                    style="background-color: #b47bbf;"
+                                                @elseif($reminder->fleet->planner_type == 'Tacho Calibration')
+                                                    style="background-color: green; color:white;"
+                                                @elseif($reminder->fleet->planner_type == 'Insurance')
+                                                    style="background-color: #c0c102;"
+                                                @elseif($reminder->fleet->planner_type == 'Road Tax')
+                                                    style="background-color: #d59436;"
+                                                @elseif($reminder->fleet->planner_type == 'DVS/PSS Permit Expiry')
+                                                    style="background-color: #9e9ee5;"
+                                                @else
+                                                    style="background-color: #6c757d; color:white;"
+                                                @endif
+                                            >
+                                                @if($reminder->fleet->planner_type == 'PMI Due')
+                                                    PMI
+                                                @elseif($reminder->fleet->planner_type == 'Brake Test Due')
+                                                    BT
+                                                @elseif($reminder->fleet->planner_type == 'Tacho Calibration')
+                                                    TACHO
+                                                @elseif($reminder->fleet->planner_type == 'Insurance')
+                                                    INS
+                                                @elseif($reminder->fleet->planner_type == 'Road Tax')
+                                                    RT
+                                                @elseif($reminder->fleet->planner_type == 'DVS/PSS Permit Expiry')
+                                                    DVS/PSS
+                                                @else
+                                                    {{ $reminder->fleet->planner_type }}
+                                                @endif
                                             </div>
                                         @endforeach
                                     @else
-                                        <span style="color: #cbd5e1;">-</span>
+                                        -
                                     @endif
                                 </td>
                             @endforeach
@@ -245,140 +224,72 @@
                     @endforeach
                 </tbody>
             </table>
-
-            @if(!$loop->last)
-                <div class="page-break"></div>
-            @endif
         @endif
     @endforeach
 
-    <!-- Reminder Summary Section -->
+    <!-- Reminder Summary -->
     @php
         $allReminders = collect();
         foreach ($groupedFleets as $vehicle_id => $fleets) {
             foreach ($fleets as $fleet) {
-                if ($fleet->reminders) {
-                    foreach ($fleet->reminders as $rem) {
-                        $allReminders->push($rem);
-                    }
+                foreach ($fleet->reminders as $reminder) {
+                    $allReminders->push($reminder);
                 }
             }
         }
-        $sortedReminders = $allReminders->sortBy('next_reminder_date');
+        $remindersByPlannerType = $allReminders->groupBy('fleet.planner_type');
     @endphp
 
-    @if($sortedReminders->isNotEmpty())
-        <div class="page-break"></div>
-        <div class="section-title" style="font-size: 11px;">
-            Reminder Summary Schedule
-        </div>
-
-        <table class="reminder-summary-table">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">Vehicle Reg</th>
-                    <th style="width: 25%;">Planner Type</th>
-                    <th style="width: 20%;">Reminder Date</th>
-                    <th style="width: 20%;">Status</th>
-                    <th style="width: 20%;">Next Action</th>
-@php
-    $counter = 1; // Initialize the counter for numbering
-@endphp
-
-<!-- Calendar Tables First -->
-@foreach($groupedDates as $chunk)
-    @if(count($chunk['dates']) > 0)
-        <h4>Schedule: {{ $chunk['label'] }}</h4>
-        <table class="calendar-table">
-            <thead>
-                <tr>
-                    <th>Reg No.</th>
-                    @foreach($chunk['dates'] as $date)
-                        <th>{{ $date->format('d/m/Y') }}</th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($sortedReminders as $reminder)
-                    @php
-                        $veh = $reminder->fleet && $reminder->fleet->vehicle ? $reminder->fleet->vehicle : null;
-                        $rReg = $veh ? ($veh->vehicle_type == 'Trailer' ? ($veh->vehicle_nick_name ?: $veh->registrationNumber) : $veh->registrationNumber) : 'N/A';
-                    @endphp
-                    <tr>
-                        <td><b>{{ $rReg }}</b></td>
-                        <td>{{ $reminder->fleet ? $reminder->fleet->planner_type : '-' }}</td>
-                        <td>{{ !empty($reminder->next_reminder_date) ? \Carbon\Carbon::parse($reminder->next_reminder_date)->format('d/m/Y') : '-' }}</td>
-                        <td>
-                            @if($reminder->status === 'Completed')
-                                <span style="color: #16a34a; font-weight: bold;">Completed</span>
-                            @elseif($reminder->status === 'Pending')
-                                <span style="color: #dc2626; font-weight: bold;">Pending</span>
-                            @else
-                                {{ $reminder->status }}
-                            @endif
-                        </td>
-                        <td>{{ $reminder->vehicle_status ?: '-' }}</td>
-                        <td>{{ $fleets[0]->vehicle->registrationNumber }}</td>
-                        @foreach($chunk['dates'] as $date)
-                            <td>
-                                @php
-                                    // Find matching reminders for the current date range
-                                    $matchingReminders = $fleets->pluck('reminders')->flatten()->filter(function ($reminder) use ($date) {
-                                        $weekStartDate = $date->copy()->startOfWeek();
-                                        $weekEndDate = $date->copy()->endOfWeek();
-
-                                        // Check if the next_reminder_date is within the current week's range
-                                        return \Carbon\Carbon::parse($reminder->next_reminder_date)->between($weekStartDate, $weekEndDate, true);
-                                    });
-                                @endphp
-
-                                @if($matchingReminders->isNotEmpty())
-                                    <!-- Loop through all matching reminders and show the planner_type with custom display -->
-                                    @foreach($matchingReminders as $reminder)
-                                        <div class="week-box"
-                                            @if($reminder->fleet->planner_type == 'PMI Due')
-                                                style="background-color: #67a8e9;"
-                                            @elseif($reminder->fleet->planner_type == 'Brake Test Due')
-                                                style="background-color: #b47bbf;"
-                                            @elseif($reminder->fleet->planner_type == 'Tacho Calibration')
-                                                style="background-color: green; color:white;"
-                                            @elseif($reminder->fleet->planner_type == 'Insurance')
-                                                style="background-color: #c0c102;"
-                                            @elseif($reminder->fleet->planner_type == 'Road Tax')
-                                                style="background-color: #d59436;"
-                                            @elseif($reminder->fleet->planner_type == 'DVS/PSS Permit Expiry')
-                                                style="background-color: #9e9ee5;"
-                                            @else($reminder->fleet->planner_type == 'MOT')
-                                                style="background-color: #6c757d; color:white;"
-                                            @endif
-                                        >
-                                            @if($reminder->fleet->planner_type == 'PMI Due')
-                                                PMI
-                                            @elseif($reminder->fleet->planner_type == 'Brake Test Due')
-                                                BT
-                                            @elseif($reminder->fleet->planner_type == 'Tacho Calibration')
-                                                TACHO
-                                            @elseif($reminder->fleet->planner_type == 'Insurance')
-                                                INS
-                                            @elseif($reminder->fleet->planner_type == 'Road Tax')
-                                                RT
-                                            @elseif($reminder->fleet->planner_type == 'DVS/PSS Permit Expiry')
-                                                DVS/PSS
-                                            @else
-                                                {{ $reminder->fleet->planner_type }}<!-- Show the default planner_type with counter -->
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                @else
-                                    - <!-- Placeholder if no reminder exists -->
-                                @endif
-                            </td>
+    <div class="reminder-list-container">
+        @foreach($remindersByPlannerType as $plannerType => $reminders)
+            <div class="reminder-list">
+                <h1 style="
+                    @if($plannerType == 'PMI Due') color: #67a8e9;
+                    @elseif($plannerType == 'Brake Test Due') color: #b47bbf;
+                    @elseif($plannerType == 'Tacho Calibration') color: green;
+                    @elseif($plannerType == 'Insurance') color: #c0c102;
+                    @elseif($plannerType == 'Road Tax') color: #d59436;
+                    @elseif($plannerType == 'DVS/PSS Permit Expiry') color: #9e9ee5;
+                    @elseif($plannerType == 'MOT') color: #6c757d;
+                    @else color: #000;
+                    @endif">
+                    {{ $plannerType }} Reminders
+                </h1>
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th>Planner Type</th>
+                            <th>Vehicle Reg No.</th>
+                            <th>Reminder Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($reminders as $reminder)
+                            @php
+                                $veh = $reminder->fleet && $reminder->fleet->vehicle ? $reminder->fleet->vehicle : null;
+                                $rReg = $veh ? ($veh->vehicle_type == 'Trailer' ? ($veh->vehicle_nick_name ?: $veh->registrationNumber) : $veh->registrationNumber) : 'N/A';
+                            @endphp
+                            <tr>
+                                <td>{{ $reminder->fleet->planner_type }}</td>
+                                <td>{{ $rReg }}</td>
+                                <td>{{ \Carbon\Carbon::parse($reminder->next_reminder_date)->format('d/m/Y') }}</td>
+                                <td>
+                                    @if($reminder->status === 'Completed')
+                                        <span style="color: green; font-weight:bold;">{{ $reminder->status }}</span>
+                                    @elseif($reminder->status === 'Pending')
+                                        <span style="color: red; font-weight:bold;">{{ $reminder->status }}</span>
+                                    @else
+                                        {{ $reminder->status }}
+                                    @endif
+                                </td>
+                            </tr>
                         @endforeach
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @endif
+                    </tbody>
+                </table>
+            </div>
+        @endforeach
+    </div>
 
 </body>
 </html>

@@ -118,7 +118,7 @@ public function __construct($companyId, $vehicleId, $plannerType, $year = null, 
     {
         return [
             'Company Name',
-            'Vehicle Registration Number',
+            'Vehicle ID',
             'Planner Type',
             'Reminder Date',
             'Status',
@@ -139,7 +139,7 @@ public function __construct($companyId, $vehicleId, $plannerType, $year = null, 
 
             return [
                 $fleet->company ? $fleet->company->name : 'N/A',
-                $fleet->vehicle->registrationNumber,
+                $fleet->vehicle ? ($fleet->vehicle->vehicle_nick_name ?? '') : '',
                 $fleet->planner_type,
                 $formattedDate,
                 $reminder->status,

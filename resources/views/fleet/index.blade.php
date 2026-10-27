@@ -35,12 +35,13 @@
         // Use the Planner Type as the main title and the Registration Number below it
         var plannerType = arg.event.title; // Planner Type
         var registrationNumber = arg.event.extendedProps.registration_number; // Registration Number
+        var vehicleNickName = arg.event.extendedProps.vehicle_nick_name; // Nick Name (empty bracket if not set)
                 var statusIcon = arg.event.extendedProps.status_icon; // Registration Number
 
         return {
             html: `
                 <div style="text-align: center;">
-                                    <span>(${registrationNumber})</span><br/>
+                                    <span>(${vehicleNickName})</span><br/>
                     <strong>${plannerType}</strong>
                     <strong style="position: absolute; top: 0px; right: 5px;">${statusIcon ? statusIcon : ''}</strong>
                 </div>
