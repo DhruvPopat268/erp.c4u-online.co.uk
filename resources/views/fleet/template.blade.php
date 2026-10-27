@@ -69,7 +69,9 @@
             text-align: left;
             position: fixed;
             top: 5px;
-            width: 89%;
+            left: 15mm;
+            right: 15mm;
+            width: auto;
             background-color: transparent;
             border-bottom: 1px solid #ddd;
             z-index: 1000;
@@ -150,7 +152,7 @@
             <table class="calendar-table">
                 <thead>
                     <tr>
-                        <th>Reg No.</th>
+                        <th>Vehicle ID</th>
                         @foreach($dates as $date)
                             <th>{{ $date->format('d/m/Y') }}</th>
                         @endforeach
@@ -161,7 +163,7 @@
                         @php
                             $firstFleet = collect($fleets)->first();
                             $vehicle = $firstFleet ? $firstFleet->vehicle : null;
-                            $regNo = $vehicle ? ($vehicle->vehicle_type == 'Trailer' ? ($vehicle->vehicle_nick_name ?: $vehicle->registrationNumber) : $vehicle->registrationNumber) : 'N/A';
+                            $regNo = $vehicle ? ($vehicle->vehicle_nick_name ?? '') : 'N/A';
                         @endphp
                         <tr>
                             <td>{{ $regNo }}</td>
@@ -259,7 +261,7 @@
                     <thead>
                         <tr>
                             <th>Planner Type</th>
-                            <th>Vehicle Reg No.</th>
+                            <th>Vehicle ID</th>
                             <th>Reminder Date</th>
                             <th>Status</th>
                         </tr>
@@ -268,7 +270,7 @@
                         @foreach($reminders as $reminder)
                             @php
                                 $veh = $reminder->fleet && $reminder->fleet->vehicle ? $reminder->fleet->vehicle : null;
-                                $rReg = $veh ? ($veh->vehicle_type == 'Trailer' ? ($veh->vehicle_nick_name ?: $veh->registrationNumber) : $veh->registrationNumber) : 'N/A';
+                                $rReg = $veh ? ($veh->vehicle_nick_name ?? '') : 'N/A';
                             @endphp
                             <tr>
                                 <td>{{ $reminder->fleet->planner_type }}</td>

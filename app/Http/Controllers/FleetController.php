@@ -1600,8 +1600,8 @@ $selectedGroupId = $request->input('group_id');
         // Collect all weekly dates into a flat array first
         $allDates = iterator_to_array($dates, false);
 
-        // Split sequentially into chunks of 17 weeks per page (instead of fixed month buckets)
-        $chunks = array_chunk($allDates, 17);
+        // Split sequentially into chunks of 13 weeks per page — fits A4 landscape with equal left/right margins
+        $chunks = array_chunk($allDates, 13);
 
         // Build groupedDates as an ordered array of chunks with metadata
         // Each entry: ['dates' => [...Carbon...], 'label' => 'DD Mon YYYY – DD Mon YYYY']
@@ -1644,7 +1644,7 @@ $selectedGroupId = $request->input('group_id');
                 });
         })
             ->with(['reminders' => fn ($q) => $q->whereBetween('next_reminder_date', [$startDate, $endDate])])
-            ->with(['vehicle']) // Ensure vehicle is eager loaded
+            ->with(['vehicle']) // Ensure vehicle (vehicleDetails with vehicle_nick_name) is eager loaded
             ->get();
 
         // Filter vehicle details accordingly
