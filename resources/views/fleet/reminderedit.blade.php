@@ -4,19 +4,37 @@
         // Get the 'next_reminder_date' value and convert it to a Carbon instance
         $reminderDate = \Carbon\Carbon::parse($reminder->next_reminder_date);
 
-        // Query to find the latest 'next_reminder_date' with status 'Completed' for the same fleet_planner_id
-        $latestCompletedReminder = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $reminder->fleet_planner_id)
+        // Query to find the latest 'next_reminder_date' with status 'Completed'
+        // across ALL fleet planners for the same vehicle + planner type
+        // (not just the current fleet_planner_id, since new Fleet records are created on each PMI update)
+        $vehicleId        = $reminder->fleet->vehicle_id;
+        $fleetPlannerType = $reminder->fleet->planner_type;
+
+        \Log::info('[reminderedit] Reminder ID: ' . $reminder->id);
+        \Log::info('[reminderedit] fleet_planner_id: ' . $reminder->fleet_planner_id);
+        \Log::info('[reminderedit] vehicle_id: ' . $vehicleId);
+        \Log::info('[reminderedit] planner_type: ' . $fleetPlannerType);
+        \Log::info('[reminderedit] current reminder date: ' . $reminder->next_reminder_date);
+
+        $latestCompletedReminder = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($vehicleId, $fleetPlannerType) {
+                $q->where('vehicle_id', $vehicleId)
+                  ->where('planner_type', $fleetPlannerType);
+            })
             ->where('status', 'Completed')
-            ->latest('next_reminder_date') // Order by the latest 'next_reminder_date'
+            ->latest('next_reminder_date')
             ->first();
 
-        // If a 'Completed' reminder exists, set the minDate as that 'next_reminder_date'
+        \Log::info('[reminderedit] latestCompletedReminder: ' . ($latestCompletedReminder ? $latestCompletedReminder->next_reminder_date . ' (ID: ' . $latestCompletedReminder->id . ')' : 'NULL'));
+
+        // If a 'Completed' reminder exists, set the minDate as that 'next_reminder_date' + 1 day
         if ($latestCompletedReminder) {
             $minDate = \Carbon\Carbon::parse($latestCompletedReminder->next_reminder_date)->addDay()->format('Y-m-d');
         } else {
-            // If no 'Completed' reminder exists, fall back to the current reminder's 'next_reminder_date' and subtract 1 day
+            // No completed reminder exists — no min restriction
             $minDate = null;
         }
+
+        \Log::info('[reminderedit] minDate: ' . ($minDate ?? 'NULL'));
 
           // Query to find the next 'next_reminder_date' with status 'Pending' for the same fleet_planner_id
     $nextPendingReminder = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $reminder->fleet_planner_id)
@@ -25,6 +43,8 @@
     ->oldest('next_reminder_date') // Order by the earliest 'next_reminder_date'
     ->first();
 
+    \Log::info('[reminderedit] nextPendingReminder: ' . ($nextPendingReminder ? $nextPendingReminder->next_reminder_date . ' (ID: ' . $nextPendingReminder->id . ')' : 'NULL'));
+
 // If a 'Pending' reminder exists, set the maxDate as that 'next_reminder_date' and subtract 1 day
 if ($nextPendingReminder) {
     $maxDate = \Carbon\Carbon::parse($nextPendingReminder->next_reminder_date)->subDay()->format('Y-m-d');
@@ -32,6 +52,9 @@ if ($nextPendingReminder) {
     // If no 'Pending' reminder exists, fall back to the last date of the month for the current reminder and subtract 1 day
     $maxDate = null;
 }
+
+    \Log::info('[reminderedit] maxDate: ' . ($maxDate ?? 'NULL'));
+    \Log::info('[reminderedit] ---- END ----');
 @endphp
 
 
@@ -106,5 +129,42 @@ if ($nextPendingReminder) {
             } else {
                 archiveOtherText.style.display = 'none';
             }
-    });
+        });
+
+        // Enforce min/max on the date picker — Chrome does not visually block out-of-range dates
+        (function () {
+            var dateInput = document.getElementById('next_reminder_date');
+            if (!dateInput) return;
+
+            var minDate = dateInput.getAttribute('min') || null;
+            var maxDate = dateInput.getAttribute('max') || null;
+
+            // Show visible hint under the picker
+            var hint = document.createElement('small');
+            hint.style.color = '#dc3545';
+            hint.style.display = 'none';
+            dateInput.parentNode.appendChild(hint);
+
+            dateInput.addEventListener('change', function () {
+                var val = this.value;
+                if (!val) return;
+
+                if (minDate && val < minDate) {
+                    hint.textContent = 'Date cannot be before ' + formatDisplay(minDate) + ' (last completed date + 1 day)';
+                    hint.style.display = 'block';
+                    this.value = minDate;
+                } else if (maxDate && val > maxDate) {
+                    hint.textContent = 'Date cannot be after ' + formatDisplay(maxDate) + ' (day before next scheduled reminder)';
+                    hint.style.display = 'block';
+                    this.value = maxDate;
+                } else {
+                    hint.style.display = 'none';
+                }
+            });
+
+            function formatDisplay(ymd) {
+                var parts = ymd.split('-');
+                return parts[2] + '/' + parts[1] + '/' + parts[0];
+            }
+        })();
 </script>

@@ -2821,19 +2821,17 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
         }
 
         // Fetch last completed PMI reminder date for this vehicle
+        // Fetch last completed PMI reminder date across ALL fleet entries for this vehicle
         $lastPmiCompletedDate = null;
-        $pmiFleet = \App\Models\Fleet::where('vehicle_id', $contract->id)
-            ->where('planner_type', 'PMI Due')
-            ->orderBy('id', 'DESC')
+        $lastPmiCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
+                $q->where('vehicle_id', $contract->id)
+                  ->where('planner_type', 'PMI Due');
+            })
+            ->where('status', 'Completed')
+            ->orderBy('next_reminder_date', 'desc')
             ->first();
-        if ($pmiFleet) {
-            $lastPmiCompleted = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $pmiFleet->id)
-                ->where('status', 'Completed')
-                ->orderBy('next_reminder_date', 'desc')
-                ->first();
-            if ($lastPmiCompleted) {
-                $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
-            }
+        if ($lastPmiCompleted) {
+            $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
         }
 
         return view('contract.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
@@ -3781,19 +3779,17 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
         }
 
         // Fetch last completed PMI reminder date for this vehicle
+        // Fetch last completed PMI reminder date across ALL fleet entries for this vehicle
         $lastPmiCompletedDate = null;
-        $pmiFleet = \App\Models\Fleet::where('vehicle_id', $contract->id)
-            ->where('planner_type', 'PMI Due')
-            ->orderBy('id', 'DESC')
+        $lastPmiCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
+                $q->where('vehicle_id', $contract->id)
+                  ->where('planner_type', 'PMI Due');
+            })
+            ->where('status', 'Completed')
+            ->orderBy('next_reminder_date', 'desc')
             ->first();
-        if ($pmiFleet) {
-            $lastPmiCompleted = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $pmiFleet->id)
-                ->where('status', 'Completed')
-                ->orderBy('next_reminder_date', 'desc')
-                ->first();
-            if ($lastPmiCompleted) {
-                $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
-            }
+        if ($lastPmiCompleted) {
+            $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
         }
 
         return view('contract.trailer.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
