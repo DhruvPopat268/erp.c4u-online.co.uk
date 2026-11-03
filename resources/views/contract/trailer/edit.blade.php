@@ -139,7 +139,11 @@
             : ($editFlags['PMI Due'] ?? false);
 
             $attr = ['class' => 'form-control'];
-            if (!$isEditable) $attr['readonly'] = true;
+            if (!$isEditable) {
+                $attr['readonly'] = true;
+            } elseif ($lastPmiCompletedDate) {
+                $attr['min'] = $lastPmiCompletedDate;
+            }
             @endphp
 
             {{ Form::label('date_of_inspection', __('Date Of Inspection'), ['class' => 'form-label']) }}
@@ -184,7 +188,7 @@
 
         </div>
         <div class="form-group col-md-12">
-            {{ Form::label('PMI_due', __('PMI Due'),['class'=>'form-label']) }}
+            {{ Form::label('PMI_due', __('PMI Due') . ($lastPmiCompletedDate ? ' (Last completed at: ' . \Carbon\Carbon::parse($lastPmiCompletedDate)->format('d/m/Y') . ')' : ''), ['class'=>'form-label']) }}
             {{ Form::text('PMI_due', $contract->PMI_due, array('class' => 'form-control', 'id' => 'PMI_due', 'readonly'=> 'readonly')) }}
         </div>
 

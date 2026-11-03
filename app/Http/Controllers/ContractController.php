@@ -2820,7 +2820,23 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
             $contract->vehicle_status = 'Archive'; // Set the dropdown value to 'Archive'
         }
 
-        return view('contract.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags'));
+        // Fetch last completed PMI reminder date for this vehicle
+        $lastPmiCompletedDate = null;
+        $pmiFleet = \App\Models\Fleet::where('vehicle_id', $contract->id)
+            ->where('planner_type', 'PMI Due')
+            ->orderBy('id', 'DESC')
+            ->first();
+        if ($pmiFleet) {
+            $lastPmiCompleted = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $pmiFleet->id)
+                ->where('status', 'Completed')
+                ->orderBy('next_reminder_date', 'desc')
+                ->first();
+            if ($lastPmiCompleted) {
+                $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
+            }
+        }
+
+        return view('contract.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
     }
 
     // 24/12/2025
@@ -3219,6 +3235,11 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
                     ->where('status', 'Pending')
                     ->delete();
             }
+            // Clear PMI fields so they become editable again after un-archiving
+            $contract->date_of_inspection = null;
+            $contract->PMI_intervals      = null;
+            $contract->PMI_due            = null;
+            $contract->brake_test_due     = null;
         }
 
         // 🟩 STORE ORIGINAL VALUES BEFORE SAVE (IMPORTANT)
@@ -3759,7 +3780,23 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
             $contract->vehicle_status = 'Archive'; // Set the dropdown value to 'Archive'
         }
 
-        return view('contract.trailer.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags'));
+        // Fetch last completed PMI reminder date for this vehicle
+        $lastPmiCompletedDate = null;
+        $pmiFleet = \App\Models\Fleet::where('vehicle_id', $contract->id)
+            ->where('planner_type', 'PMI Due')
+            ->orderBy('id', 'DESC')
+            ->first();
+        if ($pmiFleet) {
+            $lastPmiCompleted = \App\Models\FleetPlannerReminder::where('fleet_planner_id', $pmiFleet->id)
+                ->where('status', 'Completed')
+                ->orderBy('next_reminder_date', 'desc')
+                ->first();
+            if ($lastPmiCompleted) {
+                $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
+            }
+        }
+
+        return view('contract.trailer.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
     }
 
     public function trailerupdate(Request $request, vehicleDetails $contract)
@@ -3821,6 +3858,11 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
                         ->where('status', 'Pending')
                         ->delete();
                 }
+                // Clear PMI fields so they become editable again after un-archiving
+                $contract->date_of_inspection = null;
+                $contract->PMI_intervals      = null;
+                $contract->PMI_due            = null;
+                $contract->brake_test_due     = null;
             }
 
             // 🟩 STORE ORIGINAL VALUES BEFORE SAVE (IMPORTANT)
