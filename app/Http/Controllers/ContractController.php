@@ -2821,20 +2821,41 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
         }
 
         // Fetch last completed PMI reminder date for this vehicle
-        // Fetch last completed PMI reminder date across ALL fleet entries for this vehicle
-        $lastPmiCompletedDate = null;
+        // Fetch last completed PMI Due date across ALL fleet entries for this vehicle
+        $lastPmiDate = null;
         $lastPmiCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
-                $q->where('vehicle_id', $contract->id)
-                  ->where('planner_type', 'PMI Due');
+                $q->where('vehicle_id', $contract->id)->where('planner_type', 'PMI Due');
             })
             ->where('status', 'Completed')
             ->orderBy('next_reminder_date', 'desc')
             ->first();
         if ($lastPmiCompleted) {
-            $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
+            $lastPmiDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
         }
 
-        return view('contract.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
+        // Fetch last completed Brake Test Due date across ALL fleet entries for this vehicle
+        $lastBrakeTestDate = null;
+        $lastBrakeTestCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
+                $q->where('vehicle_id', $contract->id)->where('planner_type', 'Brake Test Due');
+            })
+            ->where('status', 'Completed')
+            ->orderBy('next_reminder_date', 'desc')
+            ->first();
+        if ($lastBrakeTestCompleted) {
+            $lastBrakeTestDate = \Carbon\Carbon::parse($lastBrakeTestCompleted->next_reminder_date)->format('Y-m-d');
+        }
+
+        // Use the greater of the two as the min restriction for Date of Inspection
+        $lastPmiCompletedDate = null;
+        if ($lastPmiDate && $lastBrakeTestDate) {
+            $lastPmiCompletedDate = max($lastPmiDate, $lastBrakeTestDate);
+        } elseif ($lastPmiDate) {
+            $lastPmiCompletedDate = $lastPmiDate;
+        } elseif ($lastBrakeTestDate) {
+            $lastPmiCompletedDate = $lastBrakeTestDate;
+        }
+
+        return view('contract.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate', 'lastPmiDate', 'lastBrakeTestDate'));
     }
 
     // 24/12/2025
@@ -3781,18 +3802,41 @@ if (isset($responseVehicle['motTests']) && is_array($responseVehicle['motTests']
         // Fetch last completed PMI reminder date for this vehicle
         // Fetch last completed PMI reminder date across ALL fleet entries for this vehicle
         $lastPmiCompletedDate = null;
+        // Fetch last completed PMI reminder date across ALL fleet entries for this vehicle
+        $lastPmiCompletedDate = null;
+        $lastPmiDate = null;
         $lastPmiCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
-                $q->where('vehicle_id', $contract->id)
-                  ->where('planner_type', 'PMI Due');
+                $q->where('vehicle_id', $contract->id)->where('planner_type', 'PMI Due');
             })
             ->where('status', 'Completed')
             ->orderBy('next_reminder_date', 'desc')
             ->first();
         if ($lastPmiCompleted) {
-            $lastPmiCompletedDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
+            $lastPmiDate = \Carbon\Carbon::parse($lastPmiCompleted->next_reminder_date)->format('Y-m-d');
         }
 
-        return view('contract.trailer.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate'));
+        // Fetch last completed Brake Test Due date across ALL fleet entries for this vehicle
+        $lastBrakeTestDate = null;
+        $lastBrakeTestCompleted = \App\Models\FleetPlannerReminder::whereHas('fleet', function ($q) use ($contract) {
+                $q->where('vehicle_id', $contract->id)->where('planner_type', 'Brake Test Due');
+            })
+            ->where('status', 'Completed')
+            ->orderBy('next_reminder_date', 'desc')
+            ->first();
+        if ($lastBrakeTestCompleted) {
+            $lastBrakeTestDate = \Carbon\Carbon::parse($lastBrakeTestCompleted->next_reminder_date)->format('Y-m-d');
+        }
+
+        // Use the greater of the two as the min restriction for Date of Inspection
+        if ($lastPmiDate && $lastBrakeTestDate) {
+            $lastPmiCompletedDate = max($lastPmiDate, $lastBrakeTestDate);
+        } elseif ($lastPmiDate) {
+            $lastPmiCompletedDate = $lastPmiDate;
+        } elseif ($lastBrakeTestDate) {
+            $lastPmiCompletedDate = $lastBrakeTestDate;
+        }
+
+        return view('contract.trailer.edit', compact('contractTypes', 'contract', 'archiveReason', 'archiveOtherText', 'editFlags', 'lastPmiCompletedDate', 'lastPmiDate', 'lastBrakeTestDate'));
     }
 
     public function trailerupdate(Request $request, vehicleDetails $contract)

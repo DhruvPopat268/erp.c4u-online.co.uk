@@ -188,8 +188,18 @@
 
         </div>
         <div class="form-group col-md-12">
-            {{ Form::label('PMI_due', __('PMI Due') . ($lastPmiCompletedDate ? ' (Last completed at: ' . \Carbon\Carbon::parse($lastPmiCompletedDate)->format('d/m/Y') . ')' : ''), ['class'=>'form-label']) }}
+            {{ Form::label('PMI_due', __('PMI Due'), ['class'=>'form-label']) }}
             {{ Form::text('PMI_due', $contract->PMI_due, array('class' => 'form-control', 'id' => 'PMI_due', 'readonly'=> 'readonly')) }}
+            @if($lastPmiDate || $lastBrakeTestDate)
+                <small style="color: #361eb3;">
+                    @if($lastPmiDate)
+                        Last PMI completed: {{ \Carbon\Carbon::parse($lastPmiDate)->format('d/m/Y') }}.
+                    @endif
+                    @if($lastBrakeTestDate)
+                        Last Brake Test completed: {{ \Carbon\Carbon::parse($lastBrakeTestDate)->format('d/m/Y') }}.
+                    @endif
+                </small>
+            @endif
         </div>
 
         <div class="form-group col-md-12">
