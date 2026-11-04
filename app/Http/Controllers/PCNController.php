@@ -314,8 +314,9 @@ public function create()
     $companies = CompanyDetails::orderBy('name', 'asc')->where('company_status', 'Active')->get();
     $depots = \App\Models\Depot::orderBy('name', 'asc')->get();
 } else {
-    $companies = CompanyDetails::where('created_by', '=', $user->creatorId())
-        ->where('id', '=', $user->companyname)->where('company_status', 'Active')
+    $companies = CompanyDetails::where('id', '=', $user->companyname)
+        // ->where('created_by', '=', $user->creatorId()) // Commented out: causes mismatch when user is created by a PTC manager instead of the company owner
+        ->where('company_status', 'Active')
         ->get();
 
     $depotIds = is_array($user->depot_id) ? $user->depot_id : json_decode($user->depot_id, true);
